@@ -12,7 +12,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ======================================================
@@ -890,36 +889,53 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
        ============================================== -->
   <div class="screen" id="screen-absen">
     <div class="page-header">
-      <div class="header-icon">📸</div>
+      <div class="header-icon">📍</div>
       <div class="header-titles">
         <div class="header-title">Absensi</div>
-        <div class="header-sub">Foto + validasi lokasi GPS</div>
+        <div class="header-sub">Validasi lokasi GPS otomatis</div>
       </div>
     </div>
     <div class="screen-body">
-      <!-- Camera -->
-      <div class="camera-wrap" id="cam-box">
-        <video id="camera-preview" autoplay playsinline muted></video>
-        <div class="camera-overlay">
-          <div class="camera-ring"></div>
-          <button class="capture-btn" onclick="captureAbsen()">📷</button>
-        </div>
-      </div>
-      <!-- Photo preview -->
-      <div class="photo-preview-wrap" id="photo-prev">
-        <img id="photo-img" src="" alt="Foto absen">
-        <button class="btn-retake" onclick="retakeAbsen()">↩ Foto Ulang</button>
-      </div>
-      <canvas id="cap-canvas"></canvas>
 
-      <!-- GPS Bar -->
-      <div class="gps-bar">
-        <div class="gps-dot searching" id="gps-dot"></div>
-        <div class="gps-text" id="gps-text">Mendeteksi lokasi GPS…</div>
+      <!-- GPS Status Card -->
+      <div style="margin:16px;">
+        <div style="background:var(--card);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div class="gps-dot searching" id="gps-dot" style="width:12px;height:12px;"></div>
+            <div class="gps-text" id="gps-text" style="font-size:13px;font-weight:700;">Mendeteksi lokasi GPS…</div>
+          </div>
+
+          <!-- Koordinat Card -->
+          <div id="gps-info-card" style="display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+              <div style="background:var(--primary-light);border-radius:var(--r-sm);padding:14px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">Latitude</div>
+                <div style="font-size:15px;font-weight:800;color:var(--primary);" id="gps-lat-display">—</div>
+              </div>
+              <div style="background:var(--primary-light);border-radius:var(--r-sm);padding:14px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">Longitude</div>
+                <div style="font-size:15px;font-weight:800;color:var(--primary);" id="gps-lng-display">—</div>
+              </div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;">🕐</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Waktu Absen</div>
+                <div style="font-size:15px;font-weight:800;color:var(--text);" id="absen-time-display">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Radius warning -->
+          <div id="gps-radius-warn" style="display:none;background:var(--danger-light);border:1.5px solid #FECACA;border-radius:var(--r-sm);padding:12px;margin-top:10px;">
+            <div style="font-size:13px;font-weight:700;color:var(--danger);">❌ Terlalu jauh dari lab</div>
+            <div style="font-size:12px;color:var(--danger);margin-top:3px;" id="gps-dist-text"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Form -->
-      <div class="absen-form">
+      <div class="absen-form" style="padding:0 16px 16px;">
         <div class="section-label" style="margin-bottom:10px;">Jenis Absensi</div>
         <div class="type-row">
           <div class="type-btn sel" id="type-masuk" onclick="pickAbsenType('masuk')">
@@ -932,7 +948,7 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
           </div>
         </div>
         <button class="btn-primary" id="btn-absen" onclick="submitAbsen()" disabled>
-          Kirim Absen
+          📍 Catat Absensi
         </button>
 
         <div class="absen-today" style="margin-top:20px;">
@@ -992,9 +1008,9 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="cr-lbl">Basri</div>
             <div class="cr-check"></div>
           </div>
-          <div class="choice-row" onclick="pickJob('pic','Ivan',this)">
+          <div class="choice-row" onclick="pickJob('pic','Ian',this)">
             <div class="cr-ico">👨‍🔬</div>
-            <div class="cr-lbl">Ivan</div>
+            <div class="cr-lbl">Ian</div>
             <div class="cr-check"></div>
           </div>
         </div>
@@ -1111,45 +1127,83 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
     <div class="page-header">
       <div class="header-icon">🧹</div>
       <div class="header-titles">
-        <div class="header-title">Foto Kebersihan</div>
-        <div class="header-sub">Dokumentasi per jenis pekerjaan</div>
+        <div class="header-title">Kebersihan</div>
+        <div class="header-sub">Kirim foto via WhatsApp Group</div>
       </div>
     </div>
     <div class="screen-body">
-      <div style="padding:16px 16px 0;">
-        <div class="section-label" style="margin-bottom:10px;">Pilih Pekerjaan</div>
-        <div class="chip-wrap" style="padding:0;" id="clean-chips"></div>
+
+      <!-- WhatsApp Card -->
+      <div style="margin:16px;">
+        <div style="background:linear-gradient(135deg,#075E54,#128C7E);border-radius:var(--r-md);padding:24px;text-align:center;box-shadow:var(--shadow-md);">
+          <div style="font-size:56px;margin-bottom:12px;">📱</div>
+          <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:6px;">Foto Kebersihan via WhatsApp</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.75);margin-bottom:20px;line-height:1.6;">
+            Kirim foto hasil kebersihan ke Group WA Lab.<br>
+            Pastikan sertakan keterangan area yang dibersihkan.
+          </div>
+          <button onclick="openWAGroup()" style="
+            background:#fff;color:#075E54;border:none;
+            border-radius:12px;padding:14px 28px;
+            font-size:15px;font-weight:800;
+            cursor:pointer;width:100%;
+            display:flex;align-items:center;justify-content:center;gap:10px;
+            box-shadow:0 4px 16px rgba(0,0,0,.2);
+            transition:all .2s;
+          ">
+            <span style="font-size:22px;">💬</span> Buka Group WA Lab
+          </button>
+        </div>
       </div>
 
-      <div class="form-section" style="margin-top:16px;">
-        <div class="form-section-title">📷 Ambil Foto Kebersihan</div>
-        <!-- Clean Camera -->
-        <div id="clean-cam-box" style="position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px;background:#000;">
-          <video id="clean-cam" autoplay playsinline muted style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;"></video>
-          <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);">
-            <button class="capture-btn" onclick="captureClean()" style="width:62px;height:62px;font-size:24px;">📷</button>
+      <!-- Panduan -->
+      <div style="margin:0 16px 16px;">
+        <div style="background:var(--card);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
+          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;">📋 Panduan Pengiriman Foto</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">1️⃣</div>
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Ambil foto area yang sudah dibersihkan menggunakan kamera HP</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">2️⃣</div>
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Klik tombol hijau di atas untuk membuka Group WA Lab</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">3️⃣</div>
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Kirim foto + keterangan area, contoh:<br><strong style="color:var(--text);">"Timbangan — sudah dibersihkan ✅"</strong></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">4️⃣</div>
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Catat di bawah sebagai log kebersihan internal sistem</div>
+            </div>
           </div>
         </div>
-        <!-- Clean Photo Preview -->
-        <div id="clean-prev" style="display:none;position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px;">
-          <img id="clean-img" src="" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;">
-          <button class="btn-retake" onclick="retakeClean()">↩ Foto Ulang</button>
-        </div>
-        <canvas id="clean-canvas"></canvas>
-
-        <div class="form-row">
-          <label class="form-lbl">Catatan Kondisi</label>
-          <input class="input-f" type="text" id="clean-note" placeholder="Kondisi kebersihan saat ini...">
-        </div>
-        <button class="btn-accent" onclick="submitClean()" style="margin-top:4px;">Kirim Foto Kebersihan</button>
       </div>
 
-      <div style="padding:0 16px 8px;">
-        <div class="section-label" style="margin-bottom:12px;">Foto Hari Ini</div>
-        <div class="photo-grid" id="clean-grid">
-          <div class="empty-box" style="grid-column:1/-1;padding:20px 0;">
-            <div class="empty-ico" style="font-size:32px;">📭</div>
-            <div class="empty-txt" style="font-size:12px;">Belum ada foto kebersihan hari ini</div>
+      <!-- Log Internal -->
+      <div style="margin:0 16px 16px;">
+        <div style="background:var(--card);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
+          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;">📝 Catat Log Kebersihan</div>
+          <div class="form-row">
+            <label class="form-lbl">Area / Pekerjaan</label>
+            <div class="chip-wrap" style="padding:0;margin-top:8px;" id="clean-chips"></div>
+          </div>
+          <div class="form-row" style="margin-top:14px;">
+            <label class="form-lbl">Catatan Kondisi</label>
+            <input class="input-f" type="text" id="clean-note" placeholder="Kondisi kebersihan saat ini...">
+          </div>
+          <button class="btn-accent" onclick="submitCleanLog()" style="margin-top:12px;">✅ Simpan Log Kebersihan</button>
+        </div>
+      </div>
+
+      <!-- Log hari ini -->
+      <div style="padding:0 16px 16px;">
+        <div class="section-label" style="margin-bottom:12px;">Log Kebersihan Hari Ini</div>
+        <div id="clean-log-list">
+          <div class="empty-box" style="padding:16px 0;">
+            <div class="empty-ico" style="font-size:28px;">📭</div>
+            <div class="empty-txt" style="font-size:12px;">Belum ada log kebersihan hari ini</div>
           </div>
         </div>
       </div>
@@ -1329,12 +1383,12 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
    8. Deploy file ini ke Firebase Hosting atau GitHub Pages
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyDxSuXeSnD25jke_RT9dFEiNeZ_8UYLgcA",
-  authDomain:        "awklab2026.firebaseapp.com",
-  projectId:         "awklab2026",
-  storageBucket:     "awklab2026.firebasestorage.app",
-  messagingSenderId: "28665770420",
-  appId:             "1:28665770420:web:d31ebb96d15d21740d42e1"
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
 };
 
 /* ============================================================
@@ -1375,7 +1429,6 @@ const MAX_RADIUS_M = 200;        // Radius absen maksimum (meter)
 firebase.initializeApp(FIREBASE_CONFIG);
 const auth    = firebase.auth();
 const db      = firebase.firestore();
-const storage = firebase.storage();
 
 // ============================================================
 // STATE
@@ -1446,9 +1499,6 @@ async function navigate(screen) {
   if (screen === 'chemical')  await initChemical();
   if (screen === 'clean')     initClean();
   if (screen === 'admin')     initAdmin();
-  // Stop cameras when leaving
-  if (screen !== 'absen' && camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-  if (screen !== 'clean' && cleanStream) { cleanStream.getTracks().forEach(t=>t.stop()); cleanStream=null; }
 }
 
 // ============================================================
@@ -1553,47 +1603,13 @@ async function loadDashboard() {
 // ABSEN
 // ============================================================
 function initAbsen() {
-  absenPhoto = null; gpsOK = false;
+  gpsOK = false;
   document.getElementById('btn-absen').disabled = true;
-  document.getElementById('cam-box').style.display = 'block';
-  document.getElementById('photo-prev').style.display = 'none';
+  document.getElementById('gps-info-card').style.display = 'none';
+  document.getElementById('gps-radius-warn').style.display = 'none';
   pickAbsenType('masuk');
-  startAbsenCam();
   getGPS();
   loadAbsenToday();
-}
-
-async function startAbsenCam() {
-  try {
-    if (camStream) camStream.getTracks().forEach(t=>t.stop());
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:960} },
-      audio: false
-    });
-    document.getElementById('camera-preview').srcObject = camStream;
-  } catch(e) {
-    showToast('Kamera tidak dapat diakses. Periksa izin browser.', 'error');
-  }
-}
-
-function captureAbsen() {
-  const vid = document.getElementById('camera-preview');
-  const cv  = document.getElementById('cap-canvas');
-  cv.width = vid.videoWidth; cv.height = vid.videoHeight;
-  cv.getContext('2d').drawImage(vid, 0, 0);
-  absenPhoto = cv.toDataURL('image/jpeg', 0.75);
-  document.getElementById('photo-img').src = absenPhoto;
-  document.getElementById('cam-box').style.display = 'none';
-  document.getElementById('photo-prev').style.display = 'block';
-  if (camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-  updateAbsenBtn();
-}
-
-function retakeAbsen() {
-  absenPhoto = null;
-  document.getElementById('cam-box').style.display = 'block';
-  document.getElementById('photo-prev').style.display = 'none';
-  startAbsenCam(); updateAbsenBtn();
 }
 
 function pickAbsenType(type) {
@@ -1607,57 +1623,63 @@ function getGPS() {
   const txt = document.getElementById('gps-text');
   dot.className = 'gps-dot searching';
   txt.textContent = 'Mendeteksi lokasi GPS…';
+  document.getElementById('btn-absen').disabled = true;
   if (!navigator.geolocation) {
-    dot.className = 'gps-dot err'; txt.textContent = 'GPS tidak tersedia di browser ini.'; return;
+    dot.className = 'gps-dot err';
+    txt.textContent = 'GPS tidak tersedia di browser ini.'; return;
   }
   navigator.geolocation.getCurrentPosition(pos => {
     gpsLat = pos.coords.latitude; gpsLng = pos.coords.longitude;
     const dist = haversine(gpsLat, gpsLng, LAB_LAT, LAB_LNG);
+    // Tampilkan koordinat
+    document.getElementById('gps-info-card').style.display = 'block';
+    document.getElementById('gps-lat-display').textContent = gpsLat.toFixed(6);
+    document.getElementById('gps-lng-display').textContent = gpsLng.toFixed(6);
+    document.getElementById('absen-time-display').textContent = formatTime(new Date()) + ' — ' + new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
     if (dist <= MAX_RADIUS_M) {
-      gpsOK = true; dot.className = 'gps-dot ok';
-      txt.textContent = `✅ Dalam radius lab (${Math.round(dist)}m dari lab)`;
+      gpsOK = true;
+      dot.className = 'gps-dot ok';
+      txt.textContent = `✅ Lokasi terverifikasi (${Math.round(dist)}m dari lab)`;
+      document.getElementById('gps-radius-warn').style.display = 'none';
+      document.getElementById('btn-absen').disabled = false;
     } else {
-      gpsOK = false; dot.className = 'gps-dot err';
-      txt.textContent = `❌ Terlalu jauh (${Math.round(dist)}m — maks ${MAX_RADIUS_M}m)`;
+      gpsOK = false;
+      dot.className = 'gps-dot err';
+      txt.textContent = `❌ Di luar radius lab`;
+      document.getElementById('gps-radius-warn').style.display = 'block';
+      document.getElementById('gps-dist-text').textContent = `Jarak Anda ${Math.round(dist)}m — maksimum ${MAX_RADIUS_M}m dari lab`;
+      document.getElementById('btn-absen').disabled = true;
     }
-    updateAbsenBtn();
   }, () => {
     dot.className = 'gps-dot err';
-    txt.textContent = 'Gagal mendapat lokasi. Izinkan akses GPS.';
+    txt.textContent = 'Gagal mendapat lokasi. Izinkan akses GPS di browser.';
   }, { enableHighAccuracy: true, timeout: 15000 });
 }
 
-function updateAbsenBtn() {
-  document.getElementById('btn-absen').disabled = !(absenPhoto && gpsOK);
-}
-
 async function submitAbsen() {
+  if (!gpsOK) { showToast('Lokasi GPS belum terverifikasi.', 'error'); return; }
   const btn = document.getElementById('btn-absen');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Mengirim…';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Menyimpan…';
   try {
-    const ref = storage.ref(`attendance/${currentUser.uid}_${Date.now()}.jpg`);
-    await ref.putString(absenPhoto, 'data_url');
-    const photoURL = await ref.getDownloadURL();
     const ts = firebase.firestore.FieldValue.serverTimestamp();
     const today = todayStr();
     await db.collection('attendance').add({
       userId: currentUser.uid, userName: currentUser._name,
-      type: absenType, photoURL, lat: gpsLat, lng: gpsLng,
+      type: absenType, lat: gpsLat, lng: gpsLng,
       timestamp: ts, date: today
     });
-    await logActivity(`${absenType==='masuk'?'🌅 Absen Masuk':'🌙 Absen Pulang'}`,
-      `Lokasi terverifikasi • ${today}`,
-      absenType==='masuk'?'🌅':'🌙', 'ico-blue');
+    await logActivity(
+      `${absenType==='masuk'?'🌅 Absen Masuk':'🌙 Absen Pulang'}`,
+      `GPS: ${gpsLat.toFixed(5)}, ${gpsLng.toFixed(5)} • ${today}`,
+      absenType==='masuk'?'🌅':'🌙', 'ico-blue'
+    );
     showToast('Absen berhasil dicatat! ✅', 'success');
-    absenPhoto = null;
-    document.getElementById('cam-box').style.display = 'block';
-    document.getElementById('photo-prev').style.display = 'none';
-    startAbsenCam(); updateAbsenBtn(); loadAbsenToday();
+    loadAbsenToday();
   } catch(e) {
-    showToast('Gagal kirim absen: ' + e.message, 'error');
-    btn.disabled = false;
+    showToast('Gagal simpan: ' + e.message, 'error');
   }
-  btn.innerHTML = 'Kirim Absen';
+  btn.disabled = false;
+  btn.innerHTML = '📍 Catat Absensi';
 }
 
 async function loadAbsenToday() {
@@ -1676,10 +1698,13 @@ async function loadAbsenToday() {
     const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
     list.innerHTML += `
       <div class="absen-rec">
-        <img class="absen-rec-img" src="${d.photoURL}" alt="foto">
+        <div style="width:48px;height:48px;border-radius:12px;background:${d.type==='masuk'?'var(--primary-light)':'var(--purple-light)'};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+          ${d.type==='masuk'?'🌅':'🌙'}
+        </div>
         <div class="absen-rec-body">
-          <div class="absen-rec-type">${d.type==='masuk'?'🌅 Absen Masuk':'🌙 Absen Pulang'}</div>
-          <div class="absen-rec-meta">${ts} • GPS: ${d.lat?.toFixed(4)}, ${d.lng?.toFixed(4)}</div>
+          <div class="absen-rec-type">${d.type==='masuk'?'Absen Masuk':'Absen Pulang'}</div>
+          <div class="absen-rec-meta">🕐 ${ts}</div>
+          <div class="absen-rec-meta">📍 ${d.lat?.toFixed(6)}, ${d.lng?.toFixed(6)}</div>
         </div>
       </div>`;
   });
@@ -1855,29 +1880,21 @@ async function loadChemLog() {
 }
 
 // ============================================================
-// CLEANLINESS
+// CLEANLINESS — WA Group + Log Internal
 // ============================================================
+const WA_GROUP_LINK = 'https://chat.whatsapp.com/Ga2bdnvbwwd2xBU2rIa5Bp';
+
+function openWAGroup() {
+  window.open(WA_GROUP_LINK, '_blank');
+}
+
 function initClean() {
-  selCleanJob = null; cleanPhoto = null;
+  selCleanJob = null;
   document.getElementById('clean-note').value = '';
   const all = ['Timbangan','Bakaran','Operator','TM','Proximate','Instrumen'];
   document.getElementById('clean-chips').innerHTML = all.map(j =>
     `<div class="clean-chip" onclick="pickCleanJob('${j}',this)">${j}</div>`).join('');
-  startCleanCam();
-  loadCleanPhotos();
-}
-
-async function startCleanCam() {
-  try {
-    if (cleanStream) cleanStream.getTracks().forEach(t=>t.stop());
-    cleanStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width:{ideal:1280} }, audio: false
-    });
-    document.getElementById('clean-cam').srcObject = cleanStream;
-    document.getElementById('clean-cam-box').style.display = 'block';
-    document.getElementById('clean-prev').style.display = 'none';
-    cleanPhoto = null;
-  } catch(e) { showToast('Kamera tidak dapat diakses.','error'); }
+  loadCleanLog();
 }
 
 function pickCleanJob(job, el) {
@@ -1886,59 +1903,46 @@ function pickCleanJob(job, el) {
   el.classList.add('sel');
 }
 
-function captureClean() {
-  const vid = document.getElementById('clean-cam');
-  const cv  = document.getElementById('clean-canvas');
-  cv.width = vid.videoWidth; cv.height = vid.videoHeight;
-  cv.getContext('2d').drawImage(vid, 0, 0);
-  cleanPhoto = cv.toDataURL('image/jpeg', 0.5);
-  document.getElementById('clean-img').src = cleanPhoto;
-  document.getElementById('clean-cam-box').style.display = 'none';
-  document.getElementById('clean-prev').style.display = 'block';
-  if (cleanStream) { cleanStream.getTracks().forEach(t=>t.stop()); cleanStream=null; }
-}
-
-function retakeClean() { cleanPhoto = null; startCleanCam(); }
-
-async function submitClean() {
-  if (!selCleanJob) { showToast('Pilih jenis pekerjaan terlebih dahulu.','error'); return; }
-  if (!cleanPhoto)   { showToast('Ambil foto kebersihan terlebih dahulu.','error'); return; }
+async function submitCleanLog() {
+  if (!selCleanJob) { showToast('Pilih area/pekerjaan terlebih dahulu.','error'); return; }
+  const notes = document.getElementById('clean-note').value.trim();
   try {
-    const ref = storage.ref(`cleanliness/${currentUser.uid}_${Date.now()}.jpg`);
-    await ref.putString(cleanPhoto, 'data_url');
-    const photoURL = await ref.getDownloadURL();
-    const notes = document.getElementById('clean-note').value.trim();
     const ts = firebase.firestore.FieldValue.serverTimestamp();
     await db.collection('cleanlinessLogs').add({
       userId: currentUser.uid, userName: currentUser._name,
-      pekerjaan: selCleanJob, photoURL, notes,
+      pekerjaan: selCleanJob, notes,
       timestamp: ts, date: todayStr()
     });
-    await logActivity(`🧹 Kebersihan: ${selCleanJob}`, notes||'Foto kebersihan dikirim','🧹','ico-green');
-    showToast('Foto kebersihan tersimpan! ✅','success');
-    cleanPhoto = null; document.getElementById('clean-note').value = '';
-    startCleanCam(); loadCleanPhotos();
+    await logActivity(`🧹 Kebersihan: ${selCleanJob}`, notes||'Log kebersihan dicatat','🧹','ico-green');
+    showToast('Log kebersihan tersimpan! ✅','success');
+    document.getElementById('clean-note').value = '';
+    selCleanJob = null;
+    document.querySelectorAll('.clean-chip').forEach(c => c.classList.remove('sel'));
+    loadCleanLog();
   } catch(e) { showToast('Gagal: '+e.message,'error'); }
 }
 
-async function loadCleanPhotos() {
-  const grid = document.getElementById('clean-grid');
+async function loadCleanLog() {
+  const list = document.getElementById('clean-log-list');
+  if (!list) return;
   const snap = await db.collection('cleanlinessLogs')
     .where('date','==',todayStr())
     .orderBy('timestamp','desc').get();
   if (snap.empty) {
-    grid.innerHTML = `<div class="empty-box" style="grid-column:1/-1;padding:16px 0">
-      <div class="empty-ico" style="font-size:28px;">📭</div>
-      <div class="empty-txt" style="font-size:12px;">Belum ada foto kebersihan hari ini</div></div>`;
+    list.innerHTML = '<div class="empty-box" style="padding:16px 0;"><div class="empty-ico" style="font-size:28px;">📭</div><div class="empty-txt" style="font-size:12px;">Belum ada log kebersihan hari ini</div></div>';
     return;
   }
-  grid.innerHTML = '';
+  list.innerHTML = '';
   snap.forEach(doc => {
     const d = doc.data();
-    grid.innerHTML += `
-      <div class="photo-thumb">
-        <img src="${d.photoURL}" alt="${d.pekerjaan}">
-        <div class="photo-thumb-lbl">${d.pekerjaan}</div>
+    const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
+    list.innerHTML += `
+      <div class="log-card" style="margin-bottom:10px;">
+        <div style="width:38px;height:38px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧹</div>
+        <div style="flex:1;">
+          <div class="log-name">${d.pekerjaan}</div>
+          <div class="log-meta">${d.userName} • ${ts}${d.notes?' • '+d.notes:''}</div>
+        </div>
       </div>`;
   });
 }
