@@ -1891,7 +1891,7 @@ function captureClean() {
   const cv  = document.getElementById('clean-canvas');
   cv.width = vid.videoWidth; cv.height = vid.videoHeight;
   cv.getContext('2d').drawImage(vid, 0, 0);
-  cleanPhoto = cv.toDataURL('image/jpeg', 0.75);
+  cleanPhoto = cv.toDataURL('image/jpeg', 0.5);
   document.getElementById('clean-img').src = cleanPhoto;
   document.getElementById('clean-cam-box').style.display = 'none';
   document.getElementById('clean-prev').style.display = 'block';
