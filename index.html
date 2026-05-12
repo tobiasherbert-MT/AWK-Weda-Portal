@@ -1,0 +1,2182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#004FBF">
+  <title>Anindya Weda-Bay Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ======================================================
+   DESIGN SYSTEM — Anindya Weda-Bay Portal
+   iOS-inspired premium lab management UI
+   ====================================================== */
+:root {
+  --primary:        #004FBF;
+  --primary-mid:    #0062E6;
+  --primary-light:  #EBF2FF;
+  --primary-dark:   #003A8C;
+  --accent:         #00A878;
+  --accent-light:   #E6FAF5;
+  --bg:             #F0F4F9;
+  --card:           #FFFFFF;
+  --card2:          #F7F9FC;
+  --text:           #0D1B2E;
+  --text-mid:       #4A5568;
+  --text-muted:     #8D97A5;
+  --border:         #E2E8F0;
+  --border-mid:     #CBD5E0;
+  --danger:         #E53E3E;
+  --danger-light:   #FFF5F5;
+  --warning:        #D97706;
+  --warning-light:  #FFFBEB;
+  --success:        #059669;
+  --success-light:  #ECFDF5;
+  --purple:         #7C3AED;
+  --purple-light:   #F3F0FF;
+  --shadow-xs:  0 1px 2px rgba(13,27,46,.04);
+  --shadow-sm:  0 2px 8px rgba(13,27,46,.07), 0 1px 3px rgba(13,27,46,.04);
+  --shadow-md:  0 4px 20px rgba(13,27,46,.10), 0 2px 8px rgba(13,27,46,.05);
+  --shadow-lg:  0 12px 40px rgba(13,27,46,.15), 0 4px 16px rgba(13,27,46,.07);
+  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 20px; --r-xl: 24px;
+  --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --nav-h: 80px;
+  --header-h: 60px;
+}
+
+/* ===== BASE ===== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+input, select, button, textarea { font-family: var(--font); }
+img { display: block; }
+
+/* ===== APP SHELL ===== */
+#app {
+  position: relative;
+  height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--bg);
+}
+/* On desktop, add a subtle frame */
+@media (min-width: 500px) {
+  body { background: #1a202c; display: flex; align-items: center; justify-content: center; }
+  #app { height: 100vh; box-shadow: 0 0 80px rgba(0,0,0,.5); border-radius: 0; }
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transform: translateX(20px);
+  transition: opacity .28s ease, transform .28s ease;
+  background: var(--bg);
+}
+.screen.active {
+  opacity: 1; pointer-events: all;
+  transform: translateX(0);
+}
+.screen-body {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-h) + 8px);
+}
+.screen-body::-webkit-scrollbar { display: none; }
+
+/* ===== PAGE LOADER ===== */
+#page-loader {
+  position: fixed; inset: 0; z-index: 999;
+  background: linear-gradient(160deg, #003A8C, #004FBF 45%, #0070F0 80%, #00A878);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 20px;
+}
+.loader-logo { font-size: 56px; animation: floatLogo 2s ease-in-out infinite; }
+.loader-brand { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -.3px; }
+.loader-sub { color: rgba(255,255,255,.6); font-size: 13px; font-weight: 500; margin-top: -12px; }
+.loader-bar-wrap { width: 160px; height: 3px; background: rgba(255,255,255,.2); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.loader-bar { height: 100%; background: #fff; border-radius: 99px; animation: loadBar 2s ease-in-out infinite; }
+@keyframes loadBar { 0%{width:0;opacity:1} 80%{width:100%;opacity:1} 100%{width:100%;opacity:0} }
+@keyframes floatLogo { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed; top: 20px; left: 50%;
+  transform: translate(-50%, -80px);
+  background: var(--text); color: #fff;
+  border-radius: var(--r-md); padding: 12px 20px;
+  font-size: 13px; font-weight: 600;
+  z-index: 500; white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  transition: transform .35s cubic-bezier(.32,.72,0,1);
+  pointer-events: none; max-width: 360px;
+  text-align: center; white-space: normal;
+}
+#toast.show { transform: translate(-50%, 0); }
+#toast.success { background: var(--success); }
+#toast.error   { background: var(--danger); }
+#toast.warning { background: var(--warning); }
+
+/* ===== BOTTOM NAV ===== */
+#bottom-nav {
+  position: fixed; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  height: var(--nav-h);
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid rgba(0,0,0,.07);
+  display: none;
+  align-items: flex-start;
+  padding: 10px 4px 0;
+  z-index: 200;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  cursor: pointer; padding: 6px 0;
+  transition: all .2s;
+}
+.nav-icon {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; transition: all .22s;
+}
+.nav-label {
+  font-size: 9.5px; font-weight: 600;
+  color: var(--text-muted); letter-spacing: .01em;
+  transition: color .2s;
+}
+.nav-item.active .nav-icon { background: var(--primary-light); transform: scale(1.08); }
+.nav-item.active .nav-label { color: var(--primary); }
+
+/* ===== HEADER ===== */
+.page-header {
+  height: var(--header-h);
+  display: flex; align-items: center;
+  padding: 0 20px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+  gap: 12px;
+}
+.header-icon { font-size: 22px; }
+.header-titles { flex: 1; }
+.header-title { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.header-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+.header-action { color: var(--primary); font-size: 13px; font-weight: 700; cursor: pointer; }
+
+/* ===== SECTION LABEL ===== */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 0 20px; margin-bottom: 10px;
+}
+
+/* ======================================================
+   LOGIN SCREEN
+   ====================================================== */
+#screen-login {
+  background: linear-gradient(160deg, #003A8C 0%, #004FBF 40%, #0070F0 72%, #00A878 100%);
+  justify-content: center; align-items: center;
+  padding: 32px 24px 48px;
+}
+.login-brand { text-align: center; margin-bottom: 36px; animation: fadeUp .6s ease both; }
+.login-brand-icon {
+  width: 84px; height: 84px; margin: 0 auto 16px;
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 26px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+}
+.login-brand-name { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+.login-brand-sub  { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 4px; font-weight: 500; }
+
+.login-card {
+  width: 100%;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: var(--r-xl);
+  padding: 28px 24px 32px;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  animation: fadeUp .6s ease .15s both;
+}
+.login-card-h { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.login-card-p { font-size: 13px; color: rgba(255,255,255,.6); margin-bottom: 24px; font-weight: 500; }
+
+.fl-group { margin-bottom: 16px; }
+.fl-label {
+  display: block; font-size: 10.5px; font-weight: 700;
+  color: rgba(255,255,255,.75); letter-spacing: .08em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.fl-input {
+  width: 100%; padding: 14px 16px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: var(--r-sm);
+  font-size: 15px; color: #fff; outline: none;
+  transition: all .2s;
+}
+.fl-input::placeholder { color: rgba(255,255,255,.4); }
+.fl-input:focus {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.5);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+}
+.fl-err {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(229,62,62,.25);
+  border: 1px solid rgba(229,62,62,.35);
+  border-radius: var(--r-xs);
+  font-size: 13px; color: #fca5a5;
+  display: none;
+}
+
+/* Buttons */
+.btn-white {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px; margin-top: 8px;
+  background: #fff; color: var(--primary);
+  border: none; border-radius: var(--r-sm);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .18s;
+}
+.btn-white:active { transform: scale(.98); opacity: .92; }
+.btn-white:disabled { opacity: .55; cursor: not-allowed; }
+
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+  color: #fff; border: none; border-radius: var(--r-sm);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .18s;
+  box-shadow: 0 4px 16px rgba(0,79,191,.3);
+}
+.btn-primary:active { transform: scale(.98); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.btn-accent {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--accent), #00C98E);
+  color: #fff; border: none; border-radius: var(--r-sm);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .18s;
+  box-shadow: 0 4px 16px rgba(0,168,120,.28);
+}
+.btn-accent:active { transform: scale(.98); }
+.btn-accent:disabled { opacity: .5; cursor: not-allowed; }
+
+.btn-ghost {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px;
+  background: var(--card); color: var(--text-mid);
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .18s;
+}
+.btn-ghost:active { transform: scale(.98); }
+
+/* ======================================================
+   DASHBOARD SCREEN
+   ====================================================== */
+.dash-hero {
+  background: linear-gradient(140deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-mid) 100%);
+  padding: 24px 20px 28px;
+  position: relative; overflow: hidden;
+}
+.dash-hero::before {
+  content: '';
+  position: absolute; right: -40px; top: -40px;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,.06);
+  border-radius: 50%;
+}
+.dash-hero::after {
+  content: '';
+  position: absolute; right: 30px; bottom: -60px;
+  width: 160px; height: 160px;
+  background: rgba(0,168,120,.15);
+  border-radius: 50%;
+}
+.dash-greeting { font-size: 12.5px; color: rgba(255,255,255,.65); font-weight: 600; letter-spacing: .02em; }
+.dash-name { font-size: 24px; font-weight: 800; color: #fff; margin-top: 2px; letter-spacing: -.3px; }
+.dash-date { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 6px; font-weight: 500; }
+.dash-logout {
+  position: absolute; top: 20px; right: 16px;
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.dash-stats {
+  display: flex; gap: 10px; margin-top: 20px; position: relative; z-index: 1;
+}
+.stat-pill {
+  flex: 1; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-sm); padding: 12px;
+  backdrop-filter: blur(8px);
+}
+.stat-val { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; }
+.stat-lbl { font-size: 9.5px; color: rgba(255,255,255,.65); margin-top: 4px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+
+/* Absen status chip */
+.dash-absen-status {
+  margin: 16px 16px 0;
+}
+.absen-chip {
+  border-radius: var(--r-sm); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.absen-chip.ok { background: var(--success-light); border: 1.5px solid #A7F3D0; }
+.absen-chip.warn { background: var(--warning-light); border: 1.5px solid #FDE68A; }
+.absen-chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.absen-chip.ok   .absen-chip-dot { background: var(--success); }
+.absen-chip.warn .absen-chip-dot { background: var(--warning); animation: pulseWarn 1.4s infinite; }
+.absen-chip-text { flex: 1; font-size: 13px; font-weight: 600; }
+.absen-chip.ok   .absen-chip-text { color: var(--success); }
+.absen-chip.warn .absen-chip-text { color: var(--warning); }
+.absen-chip-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+@keyframes pulseWarn { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.dash-menu { padding: 20px 16px 0; }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.menu-card {
+  background: var(--card);
+  border-radius: var(--r-md); padding: 18px 16px 16px;
+  cursor: pointer; border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.menu-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.menu-card.blue::after  { background: linear-gradient(90deg, var(--primary), var(--primary-mid)); }
+.menu-card.green::after { background: linear-gradient(90deg, var(--accent), #00C98E); }
+.menu-card.amber::after { background: linear-gradient(90deg, #D97706, #F59E0B); }
+.menu-card.purple::after{ background: linear-gradient(90deg, #7C3AED, #9F67FA); }
+.menu-card:active { transform: scale(.97); box-shadow: var(--shadow-xs); }
+.menu-card-icon { font-size: 30px; margin-bottom: 10px; }
+.menu-card-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.menu-card-sub   { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+
+/* Recent Activity */
+.recent-section { padding: 20px 16px; }
+.act-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.act-item:last-child { border-bottom: none; }
+.act-ico {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.ico-blue   { background: var(--primary-light); }
+.ico-green  { background: var(--accent-light); }
+.ico-amber  { background: var(--warning-light); }
+.ico-purple { background: var(--purple-light); }
+.act-body { flex: 1; min-width: 0; }
+.act-title { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.act-sub   { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+.act-time  { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; margin-top: 1px; }
+
+/* ======================================================
+   ABSEN SCREEN
+   ====================================================== */
+.camera-wrap {
+  position: relative; background: #000;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+}
+#camera-preview {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+}
+.camera-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 55%);
+}
+.camera-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 2.5px dashed rgba(255,255,255,.4);
+  pointer-events: none;
+}
+.capture-btn {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: rgba(255,255,255,.95);
+  border: 4px solid rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,0,0,.35);
+  transition: transform .15s;
+}
+.capture-btn:active { transform: scale(.9); }
+
+.photo-preview-wrap {
+  position: relative; display: none;
+  aspect-ratio: 4/3;
+}
+.photo-preview-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.btn-retake {
+  position: absolute; top: 12px; left: 12px;
+  background: rgba(0,0,0,.6); color: #fff;
+  border: none; border-radius: 8px; padding: 8px 14px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.gps-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.gps-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0; transition: background .3s;
+}
+.gps-dot.searching { background: var(--warning); animation: pulseWarn 1.2s infinite; }
+.gps-dot.ok      { background: var(--success); }
+.gps-dot.err     { background: var(--danger); }
+.gps-text { font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+
+.absen-form { padding: 16px; }
+.type-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.type-btn {
+  flex: 1; padding: 14px 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-md); background: var(--card);
+  text-align: center; cursor: pointer;
+  transition: all .2s;
+}
+.type-btn-ico { font-size: 22px; margin-bottom: 6px; display: block; }
+.type-btn-lbl { font-size: 13px; font-weight: 700; color: var(--text-mid); }
+.type-btn.sel {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.type-btn.sel .type-btn-lbl { color: var(--primary); }
+
+.absen-today { margin-top: 16px; }
+.absen-rec {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border-radius: var(--r-sm);
+  padding: 12px 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow-xs);
+}
+.absen-rec-img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.absen-rec-body { flex: 1; }
+.absen-rec-type { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.absen-rec-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+/* ======================================================
+   JOB WIZARD SCREEN
+   ====================================================== */
+.wizard-bar { display: flex; gap: 5px; padding: 14px 20px 0; }
+.wiz-step {
+  flex: 1; height: 4px; border-radius: 2px;
+  background: var(--border); transition: background .3s;
+}
+.wiz-step.done   { background: var(--primary); }
+.wiz-step.active { background: var(--primary); opacity: .45; }
+
+.job-step-panel { padding: 20px 16px; }
+.step-ttl { font-size: 21px; font-weight: 800; color: var(--text); letter-spacing: -.3px; margin-bottom: 4px; }
+.step-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 20px; }
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.choice-card {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: var(--r-md); padding: 20px 14px 16px;
+  text-align: center; cursor: pointer; transition: all .2s;
+}
+.choice-card:active { transform: scale(.97); }
+.choice-card.sel { border-color: var(--primary); background: var(--primary-light); }
+.choice-card.sel .cc-lbl { color: var(--primary); }
+.cc-ico { font-size: 30px; margin-bottom: 10px; }
+.cc-lbl { font-size: 14px; font-weight: 800; color: var(--text); }
+.cc-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.choice-list { display: flex; flex-direction: column; gap: 10px; }
+.choice-row {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: var(--r-md); padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all .2s;
+}
+.choice-row:active { transform: scale(.98); }
+.choice-row.sel { border-color: var(--primary); background: var(--primary-light); }
+.choice-row.sel .cr-lbl { color: var(--primary); }
+.cr-ico { font-size: 24px; flex-shrink: 0; }
+.cr-lbl { flex: 1; font-size: 15px; font-weight: 700; color: var(--text); }
+.cr-check {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; transition: all .2s;
+}
+.choice-row.sel .cr-check { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.wiz-footer {
+  position: sticky; bottom: var(--nav-h);
+  display: flex; gap: 10px; padding: 12px 16px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+/* ======================================================
+   CHEMICAL SCREEN
+   ====================================================== */
+.tab-bar {
+  display: flex; background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.tab-item {
+  flex: 1; padding: 14px 8px;
+  text-align: center; font-size: 12.5px; font-weight: 700;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 3px solid transparent; transition: all .2s;
+  white-space: nowrap;
+}
+.tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.form-section { background: var(--card); margin: 16px; border-radius: var(--r-md); padding: 20px; box-shadow: var(--shadow-sm); }
+.form-section-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-lbl { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; display: block; }
+.input-f {
+  width: 100%; padding: 13px 14px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); font-size: 14px; color: var(--text);
+  outline: none; transition: all .2s;
+}
+.input-f:focus { border-color: var(--primary); background: var(--primary-light); }
+select.input-f {
+  appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238D97A5' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 36px;
+}
+.input-row { display: flex; gap: 10px; }
+.input-row .input-f:first-child { flex: 2; }
+.input-row .input-f:last-child { flex: 1; }
+
+.chem-log-wrap { padding: 0 16px 16px; }
+.log-card {
+  background: var(--card); border-radius: var(--r-sm);
+  padding: 13px 15px; margin-bottom: 10px;
+  box-shadow: var(--shadow-xs);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.log-badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 6px; font-size: 10px; font-weight: 800;
+  letter-spacing: .04em; white-space: nowrap; flex-shrink: 0;
+}
+.badge-pakai { background: var(--danger-light); color: var(--danger); }
+.badge-masuk { background: var(--success-light); color: var(--success); }
+.log-name  { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.log-meta  { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+
+/* ======================================================
+   CLEANLINESS SCREEN
+   ====================================================== */
+.chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 16px 0; }
+.clean-chip {
+  padding: 8px 15px; border-radius: 20px;
+  border: 2px solid var(--border); background: var(--card);
+  font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+  cursor: pointer; transition: all .2s;
+}
+.clean-chip.sel { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+.photo-thumb {
+  aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden;
+  position: relative;
+}
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-thumb-lbl {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.7), transparent);
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 10px 8px 7px; letter-spacing: .01em;
+}
+
+/* ======================================================
+   ADMIN SCREEN
+   ====================================================== */
+.admin-tab-bar {
+  display: flex; background: var(--card);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.admin-tab-bar::-webkit-scrollbar { display: none; }
+.admin-tab {
+  flex-shrink: 0; padding: 14px 18px;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap; transition: all .2s;
+}
+.admin-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.admin-panel { display: none; }
+.admin-panel.active { display: block; }
+
+.user-card {
+  background: var(--card); border-radius: var(--r-sm);
+  padding: 14px 16px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-xs);
+}
+.u-avatar {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.u-name  { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.u-email { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.role-tag {
+  padding: 4px 10px; border-radius: 7px;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.role-pic    { background: var(--primary-light); color: var(--primary); }
+.role-analis { background: var(--accent-light); color: var(--accent); }
+
+.export-btn-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); padding: 14px 16px;
+  cursor: pointer; transition: all .2s; margin-bottom: 10px;
+}
+.export-btn-row:active { transform: scale(.98); }
+.export-btn-ico { font-size: 24px; flex-shrink: 0; }
+.export-btn-lbl { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.export-btn-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+.report-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi-card {
+  background: var(--card); border-radius: var(--r-md); padding: 16px;
+  box-shadow: var(--shadow-xs);
+}
+.kpi-ico { font-size: 24px; margin-bottom: 8px; }
+.kpi-val { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1; }
+.kpi-lbl { font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: 600; }
+
+/* ======================================================
+   MODAL (Bottom Sheet)
+   ====================================================== */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(13,27,46,.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.modal-mask.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 24px 48px;
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.32,.72,0,1);
+  max-height: 92vh; overflow-y: auto;
+}
+.modal-sheet::-webkit-scrollbar { display: none; }
+.modal-mask.open .modal-sheet { transform: translateY(0); }
+.modal-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--border); margin: 0 auto 20px;
+}
+.modal-ttl { font-size: 19px; font-weight: 800; color: var(--text); margin-bottom: 20px; }
+
+/* ======================================================
+   EMPTY & LOADING STATES
+   ====================================================== */
+.empty-box {
+  text-align: center; padding: 36px 20px;
+}
+.empty-ico { font-size: 40px; opacity: .4; margin-bottom: 10px; }
+.empty-txt { font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
+
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 24px auto;
+}
+.spinner-sm {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ======================================================
+   ANIMATIONS
+   ====================================================== */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(24px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.fade-in { animation: fadeUp .4s ease both; }
+canvas#cap-canvas, canvas#clean-canvas { display: none; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== PAGE LOADER ===== -->
+  <div id="page-loader">
+    <div class="loader-logo">⚗️</div>
+    <div class="loader-brand">Anindya Weda-Bay Portal</div>
+    <div class="loader-sub">PT. Anindya Wiraputra Konsult</div>
+    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast"></div>
+
+  <!-- ================================================
+       SCREEN: LOGIN
+       ============================================== -->
+  <div class="screen" id="screen-login">
+    <div class="login-brand">
+      <div class="login-brand-icon">⚗️</div>
+      <div class="login-brand-name">Anindya Weda-Bay Portal</div>
+      <div class="login-brand-sub">PT. Anindya Wiraputra Konsult</div>
+    </div>
+    <div class="login-card">
+      <div class="login-card-h">Selamat Datang 👋</div>
+      <div class="login-card-p">Masuk untuk mengakses sistem lab</div>
+      <div class="fl-group">
+        <label class="fl-label">Email</label>
+        <input class="fl-input" type="email" id="li-email" placeholder="nama@anindya.co.id" autocomplete="email">
+      </div>
+      <div class="fl-group">
+        <label class="fl-label">Password</label>
+        <input class="fl-input" type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-white" id="btn-login" onclick="doLogin()">Masuk</button>
+      <div class="fl-err" id="login-err"></div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: DASHBOARD
+       ============================================== -->
+  <div class="screen" id="screen-dashboard">
+    <div class="screen-body">
+      <div class="dash-hero">
+        <button class="dash-logout" onclick="doLogout()">Keluar</button>
+        <div class="dash-greeting">Selamat datang kembali,</div>
+        <div class="dash-name" id="dash-name">—</div>
+        <div class="dash-date" id="dash-date">—</div>
+        <div class="dash-stats">
+          <div class="stat-pill">
+            <div class="stat-val" id="stat-absen">—</div>
+            <div class="stat-lbl">Absen Bln Ini</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-val" id="stat-job">—</div>
+            <div class="stat-lbl">Log Kerja</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-val" id="stat-chem">—</div>
+            <div class="stat-lbl">Log Kimia</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-absen-status">
+        <div class="absen-chip warn" id="absen-status-chip">
+          <div class="absen-chip-dot"></div>
+          <div>
+            <div class="absen-chip-text">Belum absen hari ini</div>
+            <div class="absen-chip-sub">Segera lakukan absensi</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-menu" style="margin-top:16px;">
+        <div class="section-label" style="margin-bottom:10px;">Menu Utama</div>
+        <div class="menu-grid">
+          <div class="menu-card blue" onclick="navigate('absen')">
+            <div class="menu-card-icon">📸</div>
+            <div class="menu-card-title">Absensi</div>
+            <div class="menu-card-sub">Foto & validasi GPS</div>
+          </div>
+          <div class="menu-card green" onclick="navigate('job')">
+            <div class="menu-card-icon">📋</div>
+            <div class="menu-card-title">Pekerjaan</div>
+            <div class="menu-card-sub">Pilih shift & komoditi</div>
+          </div>
+          <div class="menu-card amber" onclick="navigate('chemical')">
+            <div class="menu-card-icon">🧪</div>
+            <div class="menu-card-title">Bahan Kimia</div>
+            <div class="menu-card-sub">Catat penggunaan</div>
+          </div>
+          <div class="menu-card purple" onclick="navigate('clean')">
+            <div class="menu-card-icon">🧹</div>
+            <div class="menu-card-title">Kebersihan</div>
+            <div class="menu-card-sub">Foto per pekerjaan</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-section">
+        <div class="section-label" style="margin-bottom:10px;">Aktivitas Terbaru</div>
+        <div id="act-list">
+          <div class="empty-box">
+            <div class="empty-ico">📭</div>
+            <div class="empty-txt">Belum ada aktivitas hari ini</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: ABSEN
+       ============================================== -->
+  <div class="screen" id="screen-absen">
+    <div class="page-header">
+      <div class="header-icon">📸</div>
+      <div class="header-titles">
+        <div class="header-title">Absensi</div>
+        <div class="header-sub">Foto + validasi lokasi GPS</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <!-- Camera -->
+      <div class="camera-wrap" id="cam-box">
+        <video id="camera-preview" autoplay playsinline muted></video>
+        <div class="camera-overlay">
+          <div class="camera-ring"></div>
+          <button class="capture-btn" onclick="captureAbsen()">📷</button>
+        </div>
+      </div>
+      <!-- Photo preview -->
+      <div class="photo-preview-wrap" id="photo-prev">
+        <img id="photo-img" src="" alt="Foto absen">
+        <button class="btn-retake" onclick="retakeAbsen()">↩ Foto Ulang</button>
+      </div>
+      <canvas id="cap-canvas"></canvas>
+
+      <!-- GPS Bar -->
+      <div class="gps-bar">
+        <div class="gps-dot searching" id="gps-dot"></div>
+        <div class="gps-text" id="gps-text">Mendeteksi lokasi GPS…</div>
+      </div>
+
+      <!-- Form -->
+      <div class="absen-form">
+        <div class="section-label" style="margin-bottom:10px;">Jenis Absensi</div>
+        <div class="type-row">
+          <div class="type-btn sel" id="type-masuk" onclick="pickAbsenType('masuk')">
+            <span class="type-btn-ico">🌅</span>
+            <div class="type-btn-lbl">Masuk</div>
+          </div>
+          <div class="type-btn" id="type-pulang" onclick="pickAbsenType('pulang')">
+            <span class="type-btn-ico">🌙</span>
+            <div class="type-btn-lbl">Pulang</div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-absen" onclick="submitAbsen()" disabled>
+          Kirim Absen
+        </button>
+
+        <div class="absen-today" style="margin-top:20px;">
+          <div class="section-label" style="margin-bottom:10px;">Absen Hari Ini</div>
+          <div id="absen-today-list">
+            <div class="empty-box" style="padding:20px 0">
+              <div class="empty-txt" style="font-size:12px;">Belum ada absen hari ini</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: JOB WIZARD
+       ============================================== -->
+  <div class="screen" id="screen-job">
+    <div class="page-header">
+      <div class="header-icon">📋</div>
+      <div class="header-titles">
+        <div class="header-title">Log Pekerjaan</div>
+        <div class="header-sub" id="job-step-lbl">Langkah 1 dari 4</div>
+      </div>
+    </div>
+    <div class="wizard-bar" id="wizard-bar">
+      <div class="wiz-step active"></div>
+      <div class="wiz-step"></div>
+      <div class="wiz-step"></div>
+      <div class="wiz-step"></div>
+    </div>
+    <div class="screen-body">
+      <!-- Step 1: Shift -->
+      <div class="job-step-panel" id="js1">
+        <div class="step-ttl">Masuk Shift Apa?</div>
+        <div class="step-sub">Pilih shift kerja hari ini</div>
+        <div class="choice-grid">
+          <div class="choice-card" onclick="pickJob('shift','Pagi',this)">
+            <div class="cc-ico">🌅</div>
+            <div class="cc-lbl">Pagi</div>
+            <div class="cc-sub">07:00 – 19:00</div>
+          </div>
+          <div class="choice-card" onclick="pickJob('shift','Malam',this)">
+            <div class="cc-ico">🌙</div>
+            <div class="cc-lbl">Malam</div>
+            <div class="cc-sub">19:00 – 07:00</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2: PIC -->
+      <div class="job-step-panel" id="js2" style="display:none">
+        <div class="step-ttl">PIC Shift</div>
+        <div class="step-sub">Siapa penanggung jawab shift?</div>
+        <div class="choice-list">
+          <div class="choice-row" onclick="pickJob('pic','Basri',this)">
+            <div class="cr-ico">👨‍🔬</div>
+            <div class="cr-lbl">Basri</div>
+            <div class="cr-check"></div>
+          </div>
+          <div class="choice-row" onclick="pickJob('pic','Ian',this)">
+            <div class="cr-ico">👨‍🔬</div>
+            <div class="cr-lbl">Ian</div>
+            <div class="cr-check"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: Komoditi -->
+      <div class="job-step-panel" id="js3" style="display:none">
+        <div class="step-ttl">Komoditi</div>
+        <div class="step-sub">Apa yang dianalisa hari ini?</div>
+        <div class="choice-grid">
+          <div class="choice-card" onclick="pickJob('komoditi','Mineral',this)">
+            <div class="cc-ico">⛏️</div>
+            <div class="cc-lbl">Mineral</div>
+            <div class="cc-sub">Nickel Laterite</div>
+          </div>
+          <div class="choice-card" onclick="pickJob('komoditi','Batu Bara',this)">
+            <div class="cc-ico">🪨</div>
+            <div class="cc-lbl">Batu Bara</div>
+            <div class="cc-sub">Coal Analysis</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 4: Pekerjaan -->
+      <div class="job-step-panel" id="js4" style="display:none">
+        <div class="step-ttl">Pekerjaan</div>
+        <div class="step-sub" id="js4-sub">Pilih jenis pekerjaan</div>
+        <div class="choice-list" id="pekerjaan-list"></div>
+      </div>
+
+      <div class="wiz-footer">
+        <button class="btn-ghost" id="btn-job-back" onclick="jobBack()" style="display:none;flex:1;">← Kembali</button>
+        <button class="btn-primary" id="btn-job-next" onclick="jobNext()" disabled style="flex:2;">Lanjut →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: CHEMICAL
+       ============================================== -->
+  <div class="screen" id="screen-chemical">
+    <div class="page-header">
+      <div class="header-icon">🧪</div>
+      <div class="header-titles">
+        <div class="header-title">Bahan Kimia</div>
+        <div class="header-sub">Catat penggunaan & pemasukan</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchChemTab('pakai',this)">📤 Penggunaan</div>
+      <div class="tab-item" onclick="switchChemTab('masuk',this)">📥 Pemasukan</div>
+      <div class="tab-item" onclick="switchChemTab('log',this)">📋 Log Hari Ini</div>
+    </div>
+    <div class="screen-body">
+      <!-- Penggunaan -->
+      <div id="ct-pakai">
+        <div class="form-section">
+          <div class="form-section-title">📤 Catat Penggunaan</div>
+          <div class="form-row">
+            <label class="form-lbl">Bahan Kimia</label>
+            <select class="input-f" id="cp-name" onchange="syncUnit('cp-name','cp-unit')"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Jumlah</label>
+            <div class="input-row">
+              <input class="input-f" type="number" id="cp-qty" placeholder="0.00" min="0" step="0.01">
+              <input class="input-f" id="cp-unit" placeholder="Unit" readonly>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Catatan (opsional)</label>
+            <input class="input-f" id="cp-note" type="text" placeholder="Untuk analisa apa...">
+          </div>
+          <button class="btn-primary" onclick="submitChem('pakai')" style="margin-top:4px;">Simpan Penggunaan</button>
+        </div>
+      </div>
+      <!-- Pemasukan -->
+      <div id="ct-masuk" style="display:none">
+        <div class="form-section">
+          <div class="form-section-title">📥 Catat Pemasukan</div>
+          <div class="form-row">
+            <label class="form-lbl">Bahan Kimia</label>
+            <select class="input-f" id="cm-name" onchange="syncUnit('cm-name','cm-unit')"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Jumlah</label>
+            <div class="input-row">
+              <input class="input-f" type="number" id="cm-qty" placeholder="0.00" min="0" step="0.01">
+              <input class="input-f" id="cm-unit" placeholder="Unit" readonly>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">No. Batch / Supplier</label>
+            <input class="input-f" id="cm-note" type="text" placeholder="Batch #...">
+          </div>
+          <button class="btn-accent" onclick="submitChem('masuk')" style="margin-top:4px;">Simpan Pemasukan</button>
+        </div>
+      </div>
+      <!-- Log -->
+      <div id="ct-log" style="display:none">
+        <div style="padding:16px 0 0 0;" class="section-label" style="padding-left:16px;">Log Bahan Kimia Hari Ini</div>
+        <div class="chem-log-wrap" id="chem-log-list" style="padding-top:12px;">
+          <div class="empty-box">
+            <div class="empty-ico">🧪</div>
+            <div class="empty-txt">Belum ada log kimia hari ini</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: CLEANLINESS
+       ============================================== -->
+  <div class="screen" id="screen-clean">
+    <div class="page-header">
+      <div class="header-icon">🧹</div>
+      <div class="header-titles">
+        <div class="header-title">Foto Kebersihan</div>
+        <div class="header-sub">Dokumentasi per jenis pekerjaan</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div style="padding:16px 16px 0;">
+        <div class="section-label" style="margin-bottom:10px;">Pilih Pekerjaan</div>
+        <div class="chip-wrap" style="padding:0;" id="clean-chips"></div>
+      </div>
+
+      <div class="form-section" style="margin-top:16px;">
+        <div class="form-section-title">📷 Ambil Foto Kebersihan</div>
+        <!-- Clean Camera -->
+        <div id="clean-cam-box" style="position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px;background:#000;">
+          <video id="clean-cam" autoplay playsinline muted style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;"></video>
+          <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);">
+            <button class="capture-btn" onclick="captureClean()" style="width:62px;height:62px;font-size:24px;">📷</button>
+          </div>
+        </div>
+        <!-- Clean Photo Preview -->
+        <div id="clean-prev" style="display:none;position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px;">
+          <img id="clean-img" src="" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;">
+          <button class="btn-retake" onclick="retakeClean()">↩ Foto Ulang</button>
+        </div>
+        <canvas id="clean-canvas"></canvas>
+
+        <div class="form-row">
+          <label class="form-lbl">Catatan Kondisi</label>
+          <input class="input-f" type="text" id="clean-note" placeholder="Kondisi kebersihan saat ini...">
+        </div>
+        <button class="btn-accent" onclick="submitClean()" style="margin-top:4px;">Kirim Foto Kebersihan</button>
+      </div>
+
+      <div style="padding:0 16px 8px;">
+        <div class="section-label" style="margin-bottom:12px;">Foto Hari Ini</div>
+        <div class="photo-grid" id="clean-grid">
+          <div class="empty-box" style="grid-column:1/-1;padding:20px 0;">
+            <div class="empty-ico" style="font-size:32px;">📭</div>
+            <div class="empty-txt" style="font-size:12px;">Belum ada foto kebersihan hari ini</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: ADMIN
+       ============================================== -->
+  <div class="screen" id="screen-admin">
+    <div class="page-header">
+      <div class="header-icon">⚙️</div>
+      <div class="header-titles">
+        <div class="header-title">Admin Panel</div>
+        <div class="header-sub">Hanya untuk Lab PIC</div>
+      </div>
+    </div>
+    <div class="admin-tab-bar">
+      <div class="admin-tab active" onclick="switchAdminTab('users',this)">👥 Users</div>
+      <div class="admin-tab" onclick="switchAdminTab('export',this)">📊 Export</div>
+      <div class="admin-tab" onclick="switchAdminTab('chemicals',this)">🧪 Kimia</div>
+      <div class="admin-tab" onclick="switchAdminTab('report',this)">📈 Laporan</div>
+    </div>
+    <div class="screen-body">
+      <!-- USERS -->
+      <div class="admin-panel active" id="ap-users">
+        <div style="padding:16px;">
+          <button class="btn-primary" style="margin-bottom:14px;" onclick="openModal('modal-adduser')">+ Tambah Pengguna Baru</button>
+          <div id="user-list"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="admin-panel" id="ap-export">
+        <div class="form-section">
+          <div class="form-section-title">📊 Export Data ke Excel</div>
+          <div class="form-row">
+            <label class="form-lbl">Periode</label>
+            <div class="input-row">
+              <input class="input-f" type="date" id="exp-start">
+              <input class="input-f" type="date" id="exp-end">
+            </div>
+          </div>
+          <div id="export-btns">
+            <div class="export-btn-row" onclick="exportData('attendance')">
+              <div class="export-btn-ico">📸</div>
+              <div><div class="export-btn-lbl">Data Absensi</div><div class="export-btn-sub">Rekap kehadiran semua karyawan</div></div>
+            </div>
+            <div class="export-btn-row" onclick="exportData('jobLogs')">
+              <div class="export-btn-ico">📋</div>
+              <div><div class="export-btn-lbl">Log Pekerjaan</div><div class="export-btn-sub">Shift, PIC, komoditi, pekerjaan</div></div>
+            </div>
+            <div class="export-btn-row" onclick="exportData('chemicalUsage')">
+              <div class="export-btn-ico">🧪</div>
+              <div><div class="export-btn-lbl">Log Bahan Kimia</div><div class="export-btn-sub">Penggunaan & pemasukan bahan kimia</div></div>
+            </div>
+            <div class="export-btn-row" onclick="exportData('cleanlinessLogs')">
+              <div class="export-btn-ico">🧹</div>
+              <div><div class="export-btn-lbl">Log Kebersihan</div><div class="export-btn-sub">Catatan & foto kebersihan</div></div>
+            </div>
+            <div class="export-btn-row" onclick="exportData('all')" style="background:var(--primary-light);border-color:var(--primary);">
+              <div class="export-btn-ico">📦</div>
+              <div>
+                <div class="export-btn-lbl" style="color:var(--primary);">Export SEMUA Data</div>
+                <div class="export-btn-sub">Semua sheet dalam 1 file Excel</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHEMICALS -->
+      <div class="admin-panel" id="ap-chemicals">
+        <div class="form-section">
+          <div class="form-section-title">➕ Tambah Bahan Kimia</div>
+          <div class="form-row">
+            <label class="form-lbl">Nama Bahan Kimia</label>
+            <input class="input-f" id="nc-name" type="text" placeholder="cth: HCl, HNO3, NaOH...">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Satuan & Stok Awal</label>
+            <div class="input-row">
+              <input class="input-f" id="nc-unit" type="text" placeholder="mL / g / L / botol">
+              <input class="input-f" id="nc-stock" type="number" placeholder="Stok" min="0">
+            </div>
+          </div>
+          <button class="btn-primary" onclick="addChemical()" style="margin-top:4px;">Tambah Bahan Kimia</button>
+        </div>
+        <div style="padding:0 16px 16px;">
+          <div class="section-label" style="margin-bottom:12px;">Daftar Bahan Kimia</div>
+          <div id="admin-chem-list"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div class="admin-panel" id="ap-report">
+        <div style="padding:16px;">
+          <div class="section-label" style="margin-bottom:12px;">Ringkasan Hari Ini</div>
+          <div class="report-kpi-grid" id="kpi-grid"><div class="spinner" style="grid-column:1/-1;"></div></div>
+          <button class="btn-primary" style="margin-top:16px;" onclick="exportData('all')">📦 Export Hari Ini</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav id="bottom-nav">
+    <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Beranda</div>
+    </div>
+    <div class="nav-item" id="nav-absen" onclick="navigate('absen')">
+      <div class="nav-icon">📸</div>
+      <div class="nav-label">Absen</div>
+    </div>
+    <div class="nav-item" id="nav-job" onclick="navigate('job')">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">Kerja</div>
+    </div>
+    <div class="nav-item" id="nav-chemical" onclick="navigate('chemical')">
+      <div class="nav-icon">🧪</div>
+      <div class="nav-label">Kimia</div>
+    </div>
+    <div class="nav-item" id="nav-clean" onclick="navigate('clean')">
+      <div class="nav-icon">🧹</div>
+      <div class="nav-label">Bersih</div>
+    </div>
+    <div class="nav-item" id="nav-admin" onclick="navigate('admin')" style="display:none;">
+      <div class="nav-icon">⚙️</div>
+      <div class="nav-label">Admin</div>
+    </div>
+  </nav>
+
+  <!-- ===== MODAL: Tambah User ===== -->
+  <div class="modal-mask" id="modal-adduser" onclick="handleMaskClick(event,'modal-adduser')">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-ttl">Tambah Pengguna Baru</div>
+      <div class="form-row">
+        <label class="form-lbl">Nama Lengkap</label>
+        <input class="input-f" id="nu-name" type="text" placeholder="Nama karyawan">
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label class="form-lbl">Email</label>
+        <input class="input-f" id="nu-email" type="email" placeholder="email@anindya.co.id">
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label class="form-lbl">Password Awal (min. 6 karakter)</label>
+        <input class="input-f" id="nu-pass" type="text" placeholder="Password123">
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label class="form-lbl">Role</label>
+        <select class="input-f" id="nu-role">
+          <option value="analis">Analis</option>
+          <option value="admin">Lab PIC (Admin)</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="margin-top:20px;" onclick="createUser()">Buat Akun</button>
+      <button class="btn-ghost" style="margin-top:10px;" onclick="closeModal('modal-adduser')">Batal</button>
+    </div>
+  </div>
+
+</div><!-- end #app -->
+
+<script>
+/* ============================================================
+   ⚠️  KONFIGURASI FIREBASE — ISI SESUAI PROJECT ANDA ⚠️
+   
+   Langkah Setup:
+   1. Buat project di https://console.firebase.google.com
+   2. Enable Authentication → Sign-in method → Email/Password
+   3. Enable Firestore Database (production mode)
+   4. Enable Storage
+   5. Buat user pertama (admin/PIC) lewat Firebase Console → Auth
+   6. Tambahkan dokumen di Firestore: users/{uid} → {name:"Tobias", email:"...", role:"admin"}
+   7. Isi konfigurasi di bawah dengan data dari Project Settings
+   8. Deploy file ini ke Firebase Hosting atau GitHub Pages
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDxSuXeSnD25jke_RT9dFEiNeZ_8UYLgcA",
+  authDomain:        "awklab2026.firebaseapp.com",
+  projectId:         "awklab2026",
+  storageBucket:     "awklab2026.firebasestorage.app",
+  messagingSenderId: "28665770420",
+  appId:             "1:28665770420:web:d31ebb96d15d21740d42e1"
+};
+
+/* ============================================================
+   KOORDINAT LAB WBN — Ubah sesuai koordinat asli lab Anda
+   Cara cek: buka Google Maps → klik lokasi lab → lihat angka di bawah
+   ============================================================ */
+const LAB_LAT      = -6.441959;   // ← Latitude lab (contoh Weda Bay)
+const LAB_LNG      = 106.904911;  // ← Longitude lab
+const MAX_RADIUS_M = 200;        // Radius absen maksimum (meter)
+
+/* ============================================================
+   FIRESTORE SECURITY RULES (paste ke Firebase Console → Firestore → Rules)
+   ---
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       function isAuth() { return request.auth != null; }
+       function isAdmin() {
+         return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+       }
+       match /users/{uid} {
+         allow read: if isAuth();
+         allow write: if isAdmin();
+       }
+       match /attendance/{doc}        { allow read, write: if isAuth(); }
+       match /jobLogs/{doc}           { allow read, write: if isAuth(); }
+       match /chemicalUsage/{doc}     { allow read, write: if isAuth(); }
+       match /cleanlinessLogs/{doc}   { allow read, write: if isAuth(); }
+       match /chemicals/{doc}         { allow read: if isAuth(); allow write: if isAdmin(); }
+       match /activityFeed/{doc}      { allow read, write: if isAuth(); }
+     }
+   }
+   ============================================================ */
+
+// ============================================================
+// INISIALISASI
+// ============================================================
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth    = firebase.auth();
+const db      = firebase.firestore();
+const storage = firebase.storage();
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let currentRole = null;
+let currentScreen = null;
+let camStream = null;
+let cleanStream = null;
+let absenPhoto = null;
+let cleanPhoto = null;
+let absenType = 'masuk';
+let gpsOK = false, gpsLat = null, gpsLng = null;
+let jobState = { shift: null, pic: null, komoditi: null, pekerjaan: null };
+let jobStep = 1;
+let chemicals = [];
+let selCleanJob = null;
+
+// ============================================================
+// AUTH LISTENER
+// ============================================================
+auth.onAuthStateChanged(async user => {
+  document.getElementById('page-loader').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    try {
+      const snap = await db.collection('users').doc(user.uid).get();
+      if (snap.exists) {
+        currentRole = snap.data().role;
+        currentUser._name = snap.data().name || user.email;
+      } else {
+        currentUser._name = user.email;
+        currentRole = 'analis';
+      }
+    } catch(e) {
+      currentUser._name = user.email;
+      currentRole = 'analis';
+    }
+    document.getElementById('bottom-nav').style.display = 'flex';
+    if (currentRole === 'admin') {
+      document.getElementById('nav-admin').style.display = 'flex';
+    }
+    navigate('dashboard');
+  } else {
+    document.getElementById('bottom-nav').style.display = 'none';
+    showScreen('login');
+  }
+});
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+  currentScreen = name;
+}
+
+async function navigate(screen) {
+  showScreen(screen);
+  if (screen === 'dashboard') await loadDashboard();
+  if (screen === 'absen')     initAbsen();
+  if (screen === 'job')       initJob();
+  if (screen === 'chemical')  await initChemical();
+  if (screen === 'clean')     initClean();
+  if (screen === 'admin')     initAdmin();
+  // Stop cameras when leaving
+  if (screen !== 'absen' && camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  if (screen !== 'clean' && cleanStream) { cleanStream.getTracks().forEach(t=>t.stop()); cleanStream=null; }
+}
+
+// ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('login-err');
+  err.style.display = 'none';
+  if (!email || !pass) { showErr(err, 'Email dan password harus diisi.'); return; }
+  btn.innerHTML = '<span class="spinner-sm"></span>';
+  btn.disabled = true;
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found': 'Akun tidak ditemukan.',
+      'auth/wrong-password': 'Password salah.',
+      'auth/invalid-email': 'Format email tidak valid.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.'
+    };
+    showErr(err, msgs[e.code] || 'Login gagal. Periksa kembali data Anda.');
+    btn.innerHTML = 'Masuk';
+    btn.disabled = false;
+  }
+}
+function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+document.getElementById('li-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogout() {
+  if (!confirm('Keluar dari portal?')) return;
+  await auth.signOut();
+  currentUser = null; currentRole = null;
+  document.getElementById('li-email').value = '';
+  document.getElementById('li-pass').value = '';
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function loadDashboard() {
+  document.getElementById('dash-name').textContent = currentUser._name || '—';
+  document.getElementById('dash-date').textContent = formatDate(new Date());
+
+  const today = todayStr();
+  const m1 = new Date(); m1.setDate(1);
+  const mStr = m1.toISOString().slice(0,10);
+
+  // Stats
+  db.collection('attendance').where('userId','==',currentUser.uid).where('date','>=',mStr).get()
+    .then(s => document.getElementById('stat-absen').textContent = s.size);
+  db.collection('jobLogs').where('userId','==',currentUser.uid).where('date','==',today).get()
+    .then(s => document.getElementById('stat-job').textContent = s.size);
+  db.collection('chemicalUsage').where('userId','==',currentUser.uid).where('date','==',today).get()
+    .then(s => document.getElementById('stat-chem').textContent = s.size);
+
+  // Absen status
+  db.collection('attendance').where('userId','==',currentUser.uid).where('date','==',today).get()
+    .then(s => {
+      const chip = document.getElementById('absen-status-chip');
+      if (s.size > 0) {
+        chip.className = 'absen-chip ok';
+        chip.innerHTML = `<div class="absen-chip-dot"></div>
+          <div><div class="absen-chip-text">Sudah absen hari ini ✓</div>
+          <div class="absen-chip-sub">${s.size} catatan absensi</div></div>`;
+      } else {
+        chip.className = 'absen-chip warn';
+        chip.innerHTML = `<div class="absen-chip-dot"></div>
+          <div><div class="absen-chip-text">Belum absen hari ini</div>
+          <div class="absen-chip-sub">Segera lakukan absensi</div></div>`;
+      }
+    });
+
+  // Recent activity
+  db.collection('activityFeed').where('userId','==',currentUser.uid)
+    .orderBy('timestamp','desc').limit(8).get()
+    .then(snap => {
+      const list = document.getElementById('act-list');
+      if (snap.empty) {
+        list.innerHTML = '<div class="empty-box"><div class="empty-ico">📭</div><div class="empty-txt">Belum ada aktivitas hari ini</div></div>';
+        return;
+      }
+      list.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        list.innerHTML += `
+          <div class="act-item">
+            <div class="act-ico ${d.icoClass||'ico-blue'}">${d.icon||'📌'}</div>
+            <div class="act-body">
+              <div class="act-title">${d.title}</div>
+              <div class="act-sub">${d.sub||''}</div>
+            </div>
+            <div class="act-time">${timeAgo(d.timestamp?.toDate())}</div>
+          </div>`;
+      });
+    });
+}
+
+// ============================================================
+// ABSEN
+// ============================================================
+function initAbsen() {
+  absenPhoto = null; gpsOK = false;
+  document.getElementById('btn-absen').disabled = true;
+  document.getElementById('cam-box').style.display = 'block';
+  document.getElementById('photo-prev').style.display = 'none';
+  pickAbsenType('masuk');
+  startAbsenCam();
+  getGPS();
+  loadAbsenToday();
+}
+
+async function startAbsenCam() {
+  try {
+    if (camStream) camStream.getTracks().forEach(t=>t.stop());
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:960} },
+      audio: false
+    });
+    document.getElementById('camera-preview').srcObject = camStream;
+  } catch(e) {
+    showToast('Kamera tidak dapat diakses. Periksa izin browser.', 'error');
+  }
+}
+
+function captureAbsen() {
+  const vid = document.getElementById('camera-preview');
+  const cv  = document.getElementById('cap-canvas');
+  cv.width = vid.videoWidth; cv.height = vid.videoHeight;
+  cv.getContext('2d').drawImage(vid, 0, 0);
+  absenPhoto = cv.toDataURL('image/jpeg', 0.75);
+  document.getElementById('photo-img').src = absenPhoto;
+  document.getElementById('cam-box').style.display = 'none';
+  document.getElementById('photo-prev').style.display = 'block';
+  if (camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  updateAbsenBtn();
+}
+
+function retakeAbsen() {
+  absenPhoto = null;
+  document.getElementById('cam-box').style.display = 'block';
+  document.getElementById('photo-prev').style.display = 'none';
+  startAbsenCam(); updateAbsenBtn();
+}
+
+function pickAbsenType(type) {
+  absenType = type;
+  document.getElementById('type-masuk').className  = 'type-btn' + (type==='masuk'  ? ' sel' : '');
+  document.getElementById('type-pulang').className = 'type-btn' + (type==='pulang' ? ' sel' : '');
+}
+
+function getGPS() {
+  const dot = document.getElementById('gps-dot');
+  const txt = document.getElementById('gps-text');
+  dot.className = 'gps-dot searching';
+  txt.textContent = 'Mendeteksi lokasi GPS…';
+  if (!navigator.geolocation) {
+    dot.className = 'gps-dot err'; txt.textContent = 'GPS tidak tersedia di browser ini.'; return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    gpsLat = pos.coords.latitude; gpsLng = pos.coords.longitude;
+    const dist = haversine(gpsLat, gpsLng, LAB_LAT, LAB_LNG);
+    if (dist <= MAX_RADIUS_M) {
+      gpsOK = true; dot.className = 'gps-dot ok';
+      txt.textContent = `✅ Dalam radius lab (${Math.round(dist)}m dari lab)`;
+    } else {
+      gpsOK = false; dot.className = 'gps-dot err';
+      txt.textContent = `❌ Terlalu jauh (${Math.round(dist)}m — maks ${MAX_RADIUS_M}m)`;
+    }
+    updateAbsenBtn();
+  }, () => {
+    dot.className = 'gps-dot err';
+    txt.textContent = 'Gagal mendapat lokasi. Izinkan akses GPS.';
+  }, { enableHighAccuracy: true, timeout: 15000 });
+}
+
+function updateAbsenBtn() {
+  document.getElementById('btn-absen').disabled = !(absenPhoto && gpsOK);
+}
+
+async function submitAbsen() {
+  const btn = document.getElementById('btn-absen');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Mengirim…';
+  try {
+    const ref = storage.ref(`attendance/${currentUser.uid}_${Date.now()}.jpg`);
+    await ref.putString(absenPhoto, 'data_url');
+    const photoURL = await ref.getDownloadURL();
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    const today = todayStr();
+    await db.collection('attendance').add({
+      userId: currentUser.uid, userName: currentUser._name,
+      type: absenType, photoURL, lat: gpsLat, lng: gpsLng,
+      timestamp: ts, date: today
+    });
+    await logActivity(`${absenType==='masuk'?'🌅 Absen Masuk':'🌙 Absen Pulang'}`,
+      `Lokasi terverifikasi • ${today}`,
+      absenType==='masuk'?'🌅':'🌙', 'ico-blue');
+    showToast('Absen berhasil dicatat! ✅', 'success');
+    absenPhoto = null;
+    document.getElementById('cam-box').style.display = 'block';
+    document.getElementById('photo-prev').style.display = 'none';
+    startAbsenCam(); updateAbsenBtn(); loadAbsenToday();
+  } catch(e) {
+    showToast('Gagal kirim absen: ' + e.message, 'error');
+    btn.disabled = false;
+  }
+  btn.innerHTML = 'Kirim Absen';
+}
+
+async function loadAbsenToday() {
+  const list = document.getElementById('absen-today-list');
+  const snap = await db.collection('attendance')
+    .where('userId','==',currentUser.uid)
+    .where('date','==',todayStr())
+    .orderBy('timestamp','desc').get();
+  if (snap.empty) {
+    list.innerHTML = '<div class="empty-box" style="padding:16px 0"><div class="empty-txt" style="font-size:12px;">Belum ada absen hari ini</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
+    list.innerHTML += `
+      <div class="absen-rec">
+        <img class="absen-rec-img" src="${d.photoURL}" alt="foto">
+        <div class="absen-rec-body">
+          <div class="absen-rec-type">${d.type==='masuk'?'🌅 Absen Masuk':'🌙 Absen Pulang'}</div>
+          <div class="absen-rec-meta">${ts} • GPS: ${d.lat?.toFixed(4)}, ${d.lng?.toFixed(4)}</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ============================================================
+// JOB WIZARD
+// ============================================================
+function initJob() {
+  jobState = { shift: null, pic: null, komoditi: null, pekerjaan: null };
+  jobStep = 1; renderJobStep();
+}
+
+function renderJobStep() {
+  for (let i=1; i<=4; i++) document.getElementById('js'+i).style.display = i===jobStep ? 'block' : 'none';
+  document.getElementById('job-step-lbl').textContent = `Langkah ${jobStep} dari 4`;
+  const steps = document.querySelectorAll('.wiz-step');
+  steps.forEach((s, i) => {
+    s.className = 'wiz-step';
+    if (i < jobStep-1) s.classList.add('done');
+    else if (i === jobStep-1) s.classList.add('active');
+  });
+  document.getElementById('btn-job-back').style.display = jobStep > 1 ? 'block' : 'none';
+  const vals = [jobState.shift, jobState.pic, jobState.komoditi, jobState.pekerjaan];
+  const nextBtn = document.getElementById('btn-job-next');
+  nextBtn.disabled = !vals[jobStep-1];
+  nextBtn.innerHTML = jobStep===4 ? '✅ Simpan Log' : 'Lanjut →';
+  if (jobStep===4) buildPekerjaanList();
+}
+
+function buildPekerjaanList() {
+  const opts = jobState.komoditi === 'Mineral'
+    ? [{ico:'⚖️',lbl:'Timbangan'},{ico:'🔥',lbl:'Bakaran'},{ico:'🖥️',lbl:'Operator'}]
+    : [{ico:'💧',lbl:'TM (Total Moisture)'},{ico:'📊',lbl:'Proximate'},{ico:'🔬',lbl:'Instrumen (TS & GCV)'}];
+  document.getElementById('js4-sub').textContent = `Pekerjaan untuk komoditi ${jobState.komoditi}`;
+  document.getElementById('pekerjaan-list').innerHTML = opts.map(o => `
+    <div class="choice-row ${jobState.pekerjaan===o.lbl?'sel':''}" onclick="pickJob('pekerjaan','${o.lbl}',this)">
+      <div class="cr-ico">${o.ico}</div>
+      <div class="cr-lbl">${o.lbl}</div>
+      <div class="cr-check">${jobState.pekerjaan===o.lbl?'✓':''}</div>
+    </div>`).join('');
+}
+
+function pickJob(field, val, el) {
+  jobState[field] = val;
+  const parent = el.parentElement;
+  parent.querySelectorAll('.choice-card,.choice-row').forEach(c => {
+    c.classList.remove('sel');
+    const chk = c.querySelector('.cr-check');
+    if (chk) chk.textContent = '';
+  });
+  el.classList.add('sel');
+  const chk = el.querySelector('.cr-check');
+  if (chk) chk.textContent = '✓';
+  document.getElementById('btn-job-next').disabled = false;
+}
+
+function jobBack() { if (jobStep>1) { jobStep--; renderJobStep(); } }
+
+async function jobNext() {
+  if (jobStep < 4) { jobStep++; renderJobStep(); return; }
+  const btn = document.getElementById('btn-job-next');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>';
+  try {
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('jobLogs').add({
+      userId: currentUser.uid, userName: currentUser._name,
+      shift: jobState.shift, picShift: jobState.pic,
+      komoditi: jobState.komoditi, pekerjaan: jobState.pekerjaan,
+      timestamp: ts, date: todayStr()
+    });
+    await logActivity(`📋 ${jobState.pekerjaan}`,
+      `${jobState.komoditi} • Shift ${jobState.shift} • PIC ${jobState.pic}`,
+      '📋', 'ico-green');
+    showToast('Pekerjaan berhasil dicatat! ✅', 'success');
+    initJob();
+  } catch(e) {
+    showToast('Gagal simpan: ' + e.message, 'error');
+    btn.disabled = false;
+  }
+  btn.innerHTML = '✅ Simpan Log';
+}
+
+// ============================================================
+// CHEMICAL
+// ============================================================
+async function initChemical() {
+  const snap = await db.collection('chemicals').orderBy('name').get();
+  chemicals = [];
+  snap.forEach(d => chemicals.push({ id: d.id, ...d.data() }));
+  buildChemSelects();
+}
+
+function buildChemSelects() {
+  const opts = chemicals.length
+    ? chemicals.map(c => `<option value="${c.id}" data-unit="${c.unit}">${c.name}</option>`).join('')
+    : '<option value="">— Belum ada bahan kimia (tambah di Admin) —</option>';
+  document.getElementById('cp-name').innerHTML = opts;
+  document.getElementById('cm-name').innerHTML = opts;
+  if (chemicals.length) {
+    document.getElementById('cp-unit').value = chemicals[0]?.unit || '';
+    document.getElementById('cm-unit').value = chemicals[0]?.unit || '';
+  }
+}
+
+function syncUnit(selId, unitId) {
+  const sel = document.getElementById(selId);
+  const opt = sel.selectedOptions[0];
+  document.getElementById(unitId).value = opt?.dataset.unit || '';
+}
+
+function switchChemTab(tab, el) {
+  ['pakai','masuk','log'].forEach(t => {
+    document.getElementById('ct-' + t).style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'log') loadChemLog();
+}
+
+async function submitChem(type) {
+  const pfx = type === 'pakai' ? 'cp' : 'cm';
+  const selEl  = document.getElementById(`${pfx}-name`);
+  const qtyEl  = document.getElementById(`${pfx}-qty`);
+  const unitEl = document.getElementById(`${pfx}-unit`);
+  const noteEl = document.getElementById(`${pfx}-note`);
+  const chemId = selEl.value;
+  const qty    = parseFloat(qtyEl.value);
+  const chem   = chemicals.find(c => c.id === chemId);
+  if (!chemId || isNaN(qty) || qty <= 0) { showToast('Isi bahan kimia dan jumlah dengan benar.','error'); return; }
+  try {
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('chemicalUsage').add({
+      userId: currentUser.uid, userName: currentUser._name,
+      type, chemicalId: chemId, chemicalName: chem?.name || chemId,
+      qty, unit: unitEl.value, notes: noteEl.value.trim(),
+      timestamp: ts, date: todayStr()
+    });
+    await logActivity(
+      `🧪 ${type==='pakai'?'Penggunaan':'Pemasukan'}: ${chem?.name}`,
+      `${qty} ${unitEl.value}${noteEl.value?' • '+noteEl.value:''}`,
+      '🧪', 'ico-amber'
+    );
+    qtyEl.value = ''; noteEl.value = '';
+    showToast('Data kimia tersimpan! ✅','success');
+    loadChemLog();
+  } catch(e) { showToast('Gagal: '+e.message,'error'); }
+}
+
+async function loadChemLog() {
+  const list = document.getElementById('chem-log-list');
+  list.innerHTML = '<div class="spinner"></div>';
+  const snap = await db.collection('chemicalUsage')
+    .where('date','==',todayStr())
+    .orderBy('timestamp','desc').get();
+  if (snap.empty) {
+    list.innerHTML = '<div class="empty-box"><div class="empty-ico">🧪</div><div class="empty-txt">Belum ada log kimia hari ini</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
+    list.innerHTML += `
+      <div class="log-card">
+        <span class="log-badge ${d.type==='pakai'?'badge-pakai':'badge-masuk'}">${d.type==='pakai'?'PAKAI':'MASUK'}</span>
+        <div style="flex:1;">
+          <div class="log-name">${d.chemicalName}</div>
+          <div class="log-meta">${d.qty} ${d.unit} • ${d.userName} • ${ts}${d.notes?' • '+d.notes:''}</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ============================================================
+// CLEANLINESS
+// ============================================================
+function initClean() {
+  selCleanJob = null; cleanPhoto = null;
+  document.getElementById('clean-note').value = '';
+  const all = ['Timbangan','Bakaran','Operator','TM','Proximate','Instrumen'];
+  document.getElementById('clean-chips').innerHTML = all.map(j =>
+    `<div class="clean-chip" onclick="pickCleanJob('${j}',this)">${j}</div>`).join('');
+  startCleanCam();
+  loadCleanPhotos();
+}
+
+async function startCleanCam() {
+  try {
+    if (cleanStream) cleanStream.getTracks().forEach(t=>t.stop());
+    cleanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width:{ideal:1280} }, audio: false
+    });
+    document.getElementById('clean-cam').srcObject = cleanStream;
+    document.getElementById('clean-cam-box').style.display = 'block';
+    document.getElementById('clean-prev').style.display = 'none';
+    cleanPhoto = null;
+  } catch(e) { showToast('Kamera tidak dapat diakses.','error'); }
+}
+
+function pickCleanJob(job, el) {
+  selCleanJob = job;
+  document.querySelectorAll('.clean-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function captureClean() {
+  const vid = document.getElementById('clean-cam');
+  const cv  = document.getElementById('clean-canvas');
+  cv.width = vid.videoWidth; cv.height = vid.videoHeight;
+  cv.getContext('2d').drawImage(vid, 0, 0);
+  cleanPhoto = cv.toDataURL('image/jpeg', 0.75);
+  document.getElementById('clean-img').src = cleanPhoto;
+  document.getElementById('clean-cam-box').style.display = 'none';
+  document.getElementById('clean-prev').style.display = 'block';
+  if (cleanStream) { cleanStream.getTracks().forEach(t=>t.stop()); cleanStream=null; }
+}
+
+function retakeClean() { cleanPhoto = null; startCleanCam(); }
+
+async function submitClean() {
+  if (!selCleanJob) { showToast('Pilih jenis pekerjaan terlebih dahulu.','error'); return; }
+  if (!cleanPhoto)   { showToast('Ambil foto kebersihan terlebih dahulu.','error'); return; }
+  try {
+    const ref = storage.ref(`cleanliness/${currentUser.uid}_${Date.now()}.jpg`);
+    await ref.putString(cleanPhoto, 'data_url');
+    const photoURL = await ref.getDownloadURL();
+    const notes = document.getElementById('clean-note').value.trim();
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('cleanlinessLogs').add({
+      userId: currentUser.uid, userName: currentUser._name,
+      pekerjaan: selCleanJob, photoURL, notes,
+      timestamp: ts, date: todayStr()
+    });
+    await logActivity(`🧹 Kebersihan: ${selCleanJob}`, notes||'Foto kebersihan dikirim','🧹','ico-green');
+    showToast('Foto kebersihan tersimpan! ✅','success');
+    cleanPhoto = null; document.getElementById('clean-note').value = '';
+    startCleanCam(); loadCleanPhotos();
+  } catch(e) { showToast('Gagal: '+e.message,'error'); }
+}
+
+async function loadCleanPhotos() {
+  const grid = document.getElementById('clean-grid');
+  const snap = await db.collection('cleanlinessLogs')
+    .where('date','==',todayStr())
+    .orderBy('timestamp','desc').get();
+  if (snap.empty) {
+    grid.innerHTML = `<div class="empty-box" style="grid-column:1/-1;padding:16px 0">
+      <div class="empty-ico" style="font-size:28px;">📭</div>
+      <div class="empty-txt" style="font-size:12px;">Belum ada foto kebersihan hari ini</div></div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="photo-thumb">
+        <img src="${d.photoURL}" alt="${d.pekerjaan}">
+        <div class="photo-thumb-lbl">${d.pekerjaan}</div>
+      </div>`;
+  });
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function initAdmin() {
+  if (currentRole !== 'admin') { navigate('dashboard'); showToast('Akses ditolak.','error'); return; }
+  setDefaultDates();
+  loadUsers();
+  loadAdminChemicals();
+  loadReport();
+}
+
+function setDefaultDates() {
+  const now = new Date();
+  const f = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const l = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  document.getElementById('exp-start').value = f;
+  document.getElementById('exp-end').value   = l;
+}
+
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ap-' + tab).classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function loadUsers() {
+  const list = document.getElementById('user-list');
+  const snap = await db.collection('users').orderBy('name').get();
+  if (snap.empty) { list.innerHTML = '<div class="empty-box"><div class="empty-txt">Belum ada pengguna</div></div>'; return; }
+  list.innerHTML = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    const init = (d.name||d.email||'?')[0].toUpperCase();
+    list.innerHTML += `
+      <div class="user-card">
+        <div class="u-avatar">${init}</div>
+        <div style="flex:1;">
+          <div class="u-name">${d.name||'—'}</div>
+          <div class="u-email">${d.email}</div>
+        </div>
+        <span class="role-tag ${d.role==='admin'?'role-pic':'role-analis'}">${d.role==='admin'?'PIC':'Analis'}</span>
+      </div>`;
+  });
+}
+
+async function loadAdminChemicals() {
+  const list = document.getElementById('admin-chem-list');
+  const snap = await db.collection('chemicals').orderBy('name').get();
+  if (snap.empty) { list.innerHTML = '<div class="empty-box"><div class="empty-txt">Belum ada bahan kimia</div></div>'; return; }
+  list.innerHTML = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    list.innerHTML += `
+      <div class="log-card" style="margin-bottom:10px;">
+        <div style="flex:1;">
+          <div class="log-name">${d.name}</div>
+          <div class="log-meta">Satuan: ${d.unit} • Stok awal: ${d.currentStock ?? '—'}</div>
+        </div>
+        <button onclick="deleteChemical('${doc.id}')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--danger);padding:0 4px;">🗑️</button>
+      </div>`;
+  });
+}
+
+async function addChemical() {
+  const name  = document.getElementById('nc-name').value.trim();
+  const unit  = document.getElementById('nc-unit').value.trim();
+  const stock = parseFloat(document.getElementById('nc-stock').value) || 0;
+  if (!name || !unit) { showToast('Isi nama dan satuan bahan kimia.','error'); return; }
+  await db.collection('chemicals').add({ name, unit, currentStock: stock });
+  showToast('Bahan kimia ditambahkan! ✅','success');
+  document.getElementById('nc-name').value = '';
+  document.getElementById('nc-unit').value = '';
+  document.getElementById('nc-stock').value = '';
+  loadAdminChemicals();
+}
+
+async function deleteChemical(id) {
+  if (!confirm('Hapus bahan kimia ini?')) return;
+  await db.collection('chemicals').doc(id).delete();
+  showToast('Dihapus.','success');
+  loadAdminChemicals();
+}
+
+async function loadReport() {
+  const grid = document.getElementById('kpi-grid');
+  const today = todayStr();
+  try {
+    const [a, j, c, cl] = await Promise.all([
+      db.collection('attendance').where('date','==',today).get(),
+      db.collection('jobLogs').where('date','==',today).get(),
+      db.collection('chemicalUsage').where('date','==',today).get(),
+      db.collection('cleanlinessLogs').where('date','==',today).get()
+    ]);
+    grid.innerHTML = `
+      ${kpiCard('📸','Absensi',a.size,'record hari ini')}
+      ${kpiCard('📋','Log Kerja',j.size,'shift dicatat')}
+      ${kpiCard('🧪','Log Kimia',c.size,'catatan kimia')}
+      ${kpiCard('🧹','Foto Bersih',cl.size,'foto dikirim')}`;
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-box" style="grid-column:1/-1"><div class="empty-txt">Gagal memuat laporan</div></div>';
+  }
+}
+function kpiCard(ico, lbl, val, sub) {
+  return `<div class="kpi-card"><div class="kpi-ico">${ico}</div>
+    <div class="kpi-val">${val}</div>
+    <div class="kpi-lbl">${lbl}<br><span style="color:var(--text-muted);font-weight:500;">${sub}</span></div></div>`;
+}
+
+// ===== Create User =====
+function openAddUserModal() { openModal('modal-adduser'); }
+
+async function createUser() {
+  const name  = document.getElementById('nu-name').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const pass  = document.getElementById('nu-pass').value;
+  const role  = document.getElementById('nu-role').value;
+  if (!name || !email || !pass) { showToast('Isi semua field.','error'); return; }
+  if (pass.length < 6) { showToast('Password minimal 6 karakter.','error'); return; }
+  try {
+    // Create secondary firebase app to avoid signing out current admin
+    const sec = firebase.initializeApp(FIREBASE_CONFIG, 'sec_' + Date.now());
+    const secAuth = sec.auth();
+    const cred = await secAuth.createUserWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({
+      name, email, role,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await secAuth.signOut();
+    showToast(`Akun ${name} berhasil dibuat! ✅`, 'success');
+    closeModal('modal-adduser');
+    ['nu-name','nu-email','nu-pass'].forEach(id => document.getElementById(id).value = '');
+    loadUsers();
+  } catch(e) { showToast('Gagal buat akun: ' + e.message,'error'); }
+}
+
+// ============================================================
+// EXPORT EXCEL
+// ============================================================
+async function exportData(type) {
+  const start = document.getElementById('exp-start')?.value || todayStr();
+  const end   = document.getElementById('exp-end')?.value   || todayStr();
+  showToast('Memproses export…', 'warning');
+  const wb = XLSX.utils.book_new();
+
+  async function addSheet(coll, label, cols) {
+    try {
+      const snap = await db.collection(coll)
+        .where('date','>=',start).where('date','<=',end)
+        .orderBy('date','asc').get();
+      const rows = [];
+      snap.forEach(d => {
+        const data = d.data();
+        const ts = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString('id-ID') : '—';
+        rows.push({ ID: d.id, Waktu: ts, ...Object.fromEntries(cols.map(k=>[k, data[k]??''])) });
+      });
+      if (rows.length === 0) rows.push({ Keterangan: 'Tidak ada data pada periode ini' });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), label);
+    } catch(e) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{Error: e.message}]), label+'_err');
+    }
+  }
+
+  if (type==='attendance'||type==='all')
+    await addSheet('attendance','Absensi',['userName','type','lat','lng','date']);
+  if (type==='jobLogs'||type==='all')
+    await addSheet('jobLogs','Log Pekerjaan',['userName','shift','picShift','komoditi','pekerjaan','date']);
+  if (type==='chemicalUsage'||type==='all')
+    await addSheet('chemicalUsage','Log Kimia',['userName','type','chemicalName','qty','unit','notes','date']);
+  if (type==='cleanlinessLogs'||type==='all')
+    await addSheet('cleanlinessLogs','Kebersihan',['userName','pekerjaan','notes','photoURL','date']);
+
+  const fname = `AWK_WBN_${type}_${start}_${end}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  showToast('File Excel berhasil diunduh! 📊','success');
+}
+
+// ============================================================
+// ACTIVITY FEED HELPER
+// ============================================================
+async function logActivity(title, sub, icon, icoClass) {
+  try {
+    await db.collection('activityFeed').add({
+      userId: currentUser.uid, title, sub, icon, icoClass,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { /* non-critical */ }
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function handleMaskClick(e, id) { if (e.target.classList.contains('modal-mask')) closeModal(id); }
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' '+type : '');
+  requestAnimationFrame(() => t.classList.add('show'));
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+function formatDate(d) {
+  return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+function formatTime(d) {
+  return d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+function timeAgo(d) {
+  if (!d) return '—';
+  const m = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (m < 1) return 'Baru saja';
+  if (m < 60) return `${m} mnt lalu`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h} jam lalu`;
+  return `${Math.floor(h/24)} hari lalu`;
+}
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+</script>
+</body>
+</html>
