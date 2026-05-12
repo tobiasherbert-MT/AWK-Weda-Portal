@@ -1127,73 +1127,60 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
     <div class="page-header">
       <div class="header-icon">🧹</div>
       <div class="header-titles">
-        <div class="header-title">Kebersihan</div>
-        <div class="header-sub">Kirim foto via WhatsApp Group</div>
+        <div class="header-title">Foto Kebersihan</div>
+        <div class="header-sub">Foto → Kirim otomatis ke Group WA</div>
       </div>
     </div>
     <div class="screen-body">
 
-      <!-- WhatsApp Card -->
+      <!-- Step 1: Pilih Pekerjaan -->
+      <div style="padding:16px 16px 0;">
+        <div class="section-label" style="margin-bottom:10px;">1️⃣ Pilih Area / Pekerjaan</div>
+        <div class="chip-wrap" style="padding:0;" id="clean-chips"></div>
+      </div>
+
+      <!-- Step 2: Ambil Foto -->
       <div style="margin:16px;">
-        <div style="background:linear-gradient(135deg,#075E54,#128C7E);border-radius:var(--r-md);padding:24px;text-align:center;box-shadow:var(--shadow-md);">
-          <div style="font-size:56px;margin-bottom:12px;">📱</div>
-          <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:6px;">Foto Kebersihan via WhatsApp</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.75);margin-bottom:20px;line-height:1.6;">
-            Kirim foto hasil kebersihan ke Group WA Lab.<br>
-            Pastikan sertakan keterangan area yang dibersihkan.
+        <div class="section-label" style="margin-bottom:10px;">2️⃣ Ambil Foto Kebersihan</div>
+        <div style="background:var(--card);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
+          <!-- Camera -->
+          <div id="clean-cam-box" style="position:relative;background:#000;">
+            <video id="clean-cam" autoplay playsinline muted style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;"></video>
+            <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);">
+              <button class="capture-btn" onclick="captureClean()" style="width:64px;height:64px;font-size:26px;">📷</button>
+            </div>
+            <div style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,.55);border-radius:8px;padding:6px 12px;color:#fff;font-size:11px;font-weight:700;" id="clean-cam-label">Pilih area dulu</div>
           </div>
-          <button onclick="openWAGroup()" style="
-            background:#fff;color:#075E54;border:none;
-            border-radius:12px;padding:14px 28px;
-            font-size:15px;font-weight:800;
-            cursor:pointer;width:100%;
-            display:flex;align-items:center;justify-content:center;gap:10px;
-            box-shadow:0 4px 16px rgba(0,0,0,.2);
-            transition:all .2s;
-          ">
-            <span style="font-size:22px;">💬</span> Buka Group WA Lab
-          </button>
-        </div>
-      </div>
+          <!-- Preview -->
+          <div id="clean-prev-box" style="display:none;position:relative;">
+            <img id="clean-prev-img" src="" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;">
+            <button class="btn-retake" onclick="retakeClean()">↩ Foto Ulang</button>
+          </div>
+          <canvas id="clean-canvas" style="display:none;"></canvas>
 
-      <!-- Panduan -->
-      <div style="margin:0 16px 16px;">
-        <div style="background:var(--card);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
-          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;">📋 Panduan Pengiriman Foto</div>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">1️⃣</div>
-              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Ambil foto area yang sudah dibersihkan menggunakan kamera HP</div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">2️⃣</div>
-              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Klik tombol hijau di atas untuk membuka Group WA Lab</div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">3️⃣</div>
-              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Kirim foto + keterangan area, contoh:<br><strong style="color:var(--text);">"Timbangan — sudah dibersihkan ✅"</strong></div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:28px;height:28px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">4️⃣</div>
-              <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">Catat di bawah sebagai log kebersihan internal sistem</div>
-            </div>
+          <!-- Catatan -->
+          <div style="padding:14px 16px;">
+            <input class="input-f" type="text" id="clean-note" placeholder="Catatan tambahan (opsional)...">
           </div>
-        </div>
-      </div>
 
-      <!-- Log Internal -->
-      <div style="margin:0 16px 16px;">
-        <div style="background:var(--card);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);">
-          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;">📝 Catat Log Kebersihan</div>
-          <div class="form-row">
-            <label class="form-lbl">Area / Pekerjaan</label>
-            <div class="chip-wrap" style="padding:0;margin-top:8px;" id="clean-chips"></div>
+          <!-- Tombol Kirim ke WA -->
+          <div style="padding:0 16px 16px;">
+            <button id="btn-kirim-wa" onclick="kirimKeWA()" style="
+              width:100%;padding:15px;border:none;border-radius:12px;
+              background:linear-gradient(135deg,#075E54,#128C7E);
+              color:#fff;font-size:15px;font-weight:800;
+              font-family:var(--font);cursor:pointer;
+              display:flex;align-items:center;justify-content:center;gap:10px;
+              box-shadow:0 4px 16px rgba(7,94,84,.35);
+              opacity:.5;pointer-events:none;
+              transition:all .2s;
+            ">
+              <span style="font-size:22px;">💬</span> Foto + Kirim ke Group WA
+            </button>
+            <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;">
+              Foto akan didownload + WA terbuka otomatis dengan teks laporan
+            </div>
           </div>
-          <div class="form-row" style="margin-top:14px;">
-            <label class="form-lbl">Catatan Kondisi</label>
-            <input class="input-f" type="text" id="clean-note" placeholder="Kondisi kebersihan saat ini...">
-          </div>
-          <button class="btn-accent" onclick="submitCleanLog()" style="margin-top:12px;">✅ Simpan Log Kebersihan</button>
         </div>
       </div>
 
@@ -1454,16 +1441,19 @@ auth.onAuthStateChanged(async user => {
   document.getElementById('page-loader').style.display = 'none';
   if (user) {
     currentUser = user;
-    try {
-      const snap = await db.collection('users').doc(user.uid).get();
-      if (snap.exists) {
-        currentRole = snap.data().role;
-        currentUser._name = snap.data().name || user.email;
-      } else {
-        currentUser._name = user.email;
-        currentRole = 'analis';
-      }
-    } catch(e) {
+    // Retry Firestore read up to 3x — token sometimes not ready immediately
+    let snap = null;
+    for (let i = 0; i < 3; i++) {
+      try {
+        await new Promise(r => setTimeout(r, i * 600)); // wait 0, 600, 1200ms
+        snap = await db.collection('users').doc(user.uid).get();
+        if (snap.exists) break;
+      } catch(e) { /* retry */ }
+    }
+    if (snap && snap.exists) {
+      currentRole = snap.data().role || 'analis';
+      currentUser._name = snap.data().name || user.email;
+    } else {
       currentUser._name = user.email;
       currentRole = 'analis';
     }
@@ -1492,6 +1482,10 @@ function showScreen(name) {
 }
 
 async function navigate(screen) {
+  // Stop clean camera when leaving
+  if (screen !== 'clean' && cleanStream) {
+    cleanStream.getTracks().forEach(t => t.stop()); cleanStream = null;
+  }
   showScreen(screen);
   if (screen === 'dashboard') await loadDashboard();
   if (screen === 'absen')     initAbsen();
@@ -1880,46 +1874,159 @@ async function loadChemLog() {
 }
 
 // ============================================================
-// CLEANLINESS — WA Group + Log Internal
+// CLEANLINESS — Kamera + Kirim WA Otomatis
 // ============================================================
 const WA_GROUP_LINK = 'https://chat.whatsapp.com/Ga2bdnvbwwd2xBU2rIa5Bp';
 
-function openWAGroup() {
-  window.open(WA_GROUP_LINK, '_blank');
-}
-
 function initClean() {
   selCleanJob = null;
+  cleanPhoto = null;
   document.getElementById('clean-note').value = '';
+  document.getElementById('clean-cam-box').style.display = 'block';
+  document.getElementById('clean-prev-box').style.display = 'none';
+  updateKirimBtn();
+
   const all = ['Timbangan','Bakaran','Operator','TM','Proximate','Instrumen'];
   document.getElementById('clean-chips').innerHTML = all.map(j =>
     `<div class="clean-chip" onclick="pickCleanJob('${j}',this)">${j}</div>`).join('');
+
+  startCleanCam();
   loadCleanLog();
+}
+
+async function startCleanCam() {
+  try {
+    if (cleanStream) cleanStream.getTracks().forEach(t => t.stop());
+    cleanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width:{ideal:1280} }, audio: false
+    });
+    document.getElementById('clean-cam').srcObject = cleanStream;
+  } catch(e) {
+    showToast('Kamera tidak dapat diakses. Izinkan akses kamera.', 'error');
+  }
 }
 
 function pickCleanJob(job, el) {
   selCleanJob = job;
   document.querySelectorAll('.clean-chip').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
+  const lbl = document.getElementById('clean-cam-label');
+  if (lbl) lbl.textContent = `Area: ${job}`;
+  updateKirimBtn();
 }
 
-async function submitCleanLog() {
-  if (!selCleanJob) { showToast('Pilih area/pekerjaan terlebih dahulu.','error'); return; }
-  const notes = document.getElementById('clean-note').value.trim();
+function captureClean() {
+  if (!selCleanJob) { showToast('Pilih area/pekerjaan dulu!', 'error'); return; }
+  const vid = document.getElementById('clean-cam');
+  const cv  = document.getElementById('clean-canvas');
+  cv.width = vid.videoWidth; cv.height = vid.videoHeight;
+  cv.getContext('2d').drawImage(vid, 0, 0);
+  cleanPhoto = cv.toDataURL('image/jpeg', 0.8);
+  document.getElementById('clean-prev-img').src = cleanPhoto;
+  document.getElementById('clean-cam-box').style.display = 'none';
+  document.getElementById('clean-prev-box').style.display = 'block';
+  if (cleanStream) { cleanStream.getTracks().forEach(t => t.stop()); cleanStream = null; }
+  updateKirimBtn();
+}
+
+function retakeClean() {
+  cleanPhoto = null;
+  document.getElementById('clean-cam-box').style.display = 'block';
+  document.getElementById('clean-prev-box').style.display = 'none';
+  startCleanCam();
+  updateKirimBtn();
+}
+
+function updateKirimBtn() {
+  const btn = document.getElementById('btn-kirim-wa');
+  if (!btn) return;
+  const ready = selCleanJob && cleanPhoto;
+  btn.style.opacity = ready ? '1' : '0.5';
+  btn.style.pointerEvents = ready ? 'auto' : 'none';
+}
+
+async function kirimKeWA() {
+  if (!selCleanJob || !cleanPhoto) {
+    showToast('Pilih area dan ambil foto dulu!', 'error'); return;
+  }
+
+  const nama    = currentUser._name || 'Analis';
+  const waktu   = formatTime(new Date());
+  const tanggal = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const catatan = document.getElementById('clean-note').value.trim();
+  const pesan   =
+`✅ *Laporan Kebersihan Lab*
+
+👤 *Nama:* ${nama}
+🧹 *Area:* ${selCleanJob}
+📅 *Tanggal:* ${tanggal}
+🕐 *Waktu:* ${waktu}${catatan ? `\n📝 *Catatan:* ${catatan}` : ''}
+
+_Dikirim via Anindya Weda-Bay Portal_`;
+
+  // Coba Web Share API (Android/iOS — bisa lampirkan foto langsung)
+  if (navigator.share) {
+    try {
+      const res  = await fetch(cleanPhoto);
+      const blob = await res.blob();
+      const file = new File([blob], `kebersihan_${selCleanJob}_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      await navigator.share({ files: [file], text: pesan });
+      // Berhasil share → log ke Firestore
+      await simpanLogKebersihan(catatan);
+      retakeClean();
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // user cancel
+      // Gagal share file, fallback ke download
+    }
+  }
+
+  // Fallback: download foto dulu, lalu buka WA dengan teks
+  const a = document.createElement('a');
+  a.href = cleanPhoto;
+  a.download = `Kebersihan_${selCleanJob}_${waktu.replace(':','-')}.jpg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => {
+    const waUrl = `${WA_GROUP_LINK}`;
+    window.open(waUrl, '_blank');
+    // Copy pesan ke clipboard agar bisa di-paste di WA
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(pesan).then(() => {
+        showToast('Foto didownload! Teks laporan sudah di-copy — paste di WA Group 📋', 'success');
+      });
+    } else {
+      showToast('Foto didownload! Kirim ke Group WA yang terbuka.', 'success');
+    }
+  }, 800);
+
+  await simpanLogKebersihan(catatan);
+  retakeClean();
+}
+
+async function simpanLogKebersihan(catatan) {
   try {
     const ts = firebase.firestore.FieldValue.serverTimestamp();
     await db.collection('cleanlinessLogs').add({
       userId: currentUser.uid, userName: currentUser._name,
-      pekerjaan: selCleanJob, notes,
+      pekerjaan: selCleanJob, notes: catatan,
       timestamp: ts, date: todayStr()
     });
-    await logActivity(`🧹 Kebersihan: ${selCleanJob}`, notes||'Log kebersihan dicatat','🧹','ico-green');
-    showToast('Log kebersihan tersimpan! ✅','success');
-    document.getElementById('clean-note').value = '';
-    selCleanJob = null;
-    document.querySelectorAll('.clean-chip').forEach(c => c.classList.remove('sel'));
+    await logActivity(`🧹 Kebersihan: ${selCleanJob}`,
+      catatan || 'Foto dikirim ke WA Group', '🧹', 'ico-green');
     loadCleanLog();
-  } catch(e) { showToast('Gagal: '+e.message,'error'); }
+  } catch(e) { console.error('Log kebersihan gagal:', e); }
+}
+
+// submitCleanLog tetap ada untuk fallback manual
+async function submitCleanLog() {
+  if (!selCleanJob) { showToast('Pilih area/pekerjaan terlebih dahulu.','error'); return; }
+  const catatan = document.getElementById('clean-note').value.trim();
+  await simpanLogKebersihan(catatan);
+  document.getElementById('clean-note').value = '';
+  showToast('Log kebersihan tersimpan! ✅','success');
 }
 
 async function loadCleanLog() {
@@ -1943,6 +2050,7 @@ async function loadCleanLog() {
           <div class="log-name">${d.pekerjaan}</div>
           <div class="log-meta">${d.userName} • ${ts}${d.notes?' • '+d.notes:''}</div>
         </div>
+        <span style="font-size:18px;">✅</span>
       </div>`;
   });
 }
