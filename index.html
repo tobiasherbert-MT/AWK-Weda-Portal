@@ -1445,18 +1445,40 @@ auth.onAuthStateChanged(async user => {
     let snap = null;
     for (let i = 0; i < 3; i++) {
       try {
-        await new Promise(r => setTimeout(r, i * 600)); // wait 0, 600, 1200ms
+        await new Promise(r => setTimeout(r, i * 600));
         snap = await db.collection('users').doc(user.uid).get();
         if (snap.exists) break;
       } catch(e) { /* retry */ }
     }
+
+    // Helper: ambil nama dari email kalau name kosong
+    const emailToName = email => {
+      const username = (email || '').split('@')[0];
+      return username
+        .replace(/[._-]+/g, ' ')
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ') || 'Analis';
+    };
+
     if (snap && snap.exists) {
-      currentRole = snap.data().role || 'analis';
-      currentUser._name = snap.data().name || user.email;
+      const data = snap.data();
+      currentRole = data.role || 'analis';
+      currentUser._name = data.name && data.name.trim() ? data.name : emailToName(user.email);
     } else {
-      currentUser._name = user.email;
+      // Auto-create dokumen user kalau belum ada (default role: analis)
+      currentUser._name = emailToName(user.email);
       currentRole = 'analis';
+      try {
+        await db.collection('users').doc(user.uid).set({
+          name: currentUser._name,
+          email: user.email,
+          role: 'analis',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch(e) { console.error('Auto-create user gagal:', e); }
     }
+
     document.getElementById('bottom-nav').style.display = 'flex';
     if (currentRole === 'admin') {
       document.getElementById('nav-admin').style.display = 'flex';
@@ -1950,7 +1972,9 @@ async function kirimKeWA() {
     showToast('Pilih area dan ambil foto dulu!', 'error'); return;
   }
 
-  const nama    = currentUser._name || 'Analis';
+  // Kalau _name adalah email, ambil bagian sebelum @
+  const rawName = currentUser._name || '';
+  const nama    = rawName.includes('@') ? rawName.split('@')[0] : (rawName || 'Analis');
   const waktu   = formatTime(new Date());
   const tanggal = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const catatan = document.getElementById('clean-note').value.trim();
