@@ -1614,7 +1614,6 @@ const FIREBASE_CONFIG = {
   appId:             "1:28665770420:web:d31ebb96d15d21740d42e1"
 };
 
-
 /* ============================================================
    KOORDINAT LAB WBN — Ubah sesuai koordinat asli lab Anda
    Cara cek: buka Google Maps → klik lokasi lab → lihat angka di bawah
@@ -2775,7 +2774,24 @@ async function kirimKeWA() {
 
 _Dikirim via Anindya Weda-Bay Portal_`;
 
-  // 1) Auto-download foto ke HP
+  // Coba Web Share API (Android/iOS — bisa lampirkan foto langsung)
+  if (navigator.share) {
+    try {
+      const res  = await fetch(cleanPhoto);
+      const blob = await res.blob();
+      const file = new File([blob], `kebersihan_${selCleanJob}_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      await navigator.share({ files: [file], text: pesan });
+      // Berhasil share → log ke Firestore
+      await simpanLogKebersihan(catatan);
+      retakeClean();
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // user cancel
+      // Gagal share file, fallback ke download
+    }
+  }
+
+  // Fallback: download foto dulu, lalu buka WA dengan teks
   const a = document.createElement('a');
   a.href = cleanPhoto;
   a.download = `Kebersihan_${selCleanJob}_${waktu.replace(':','-')}.jpg`;
@@ -2783,19 +2799,19 @@ _Dikirim via Anindya Weda-Bay Portal_`;
   a.click();
   document.body.removeChild(a);
 
-  // 2) Copy teks laporan ke clipboard
-  try {
-    if (navigator.clipboard) await navigator.clipboard.writeText(pesan);
-  } catch(e) { /* fallback handled below */ }
-
-  // 3) Buka Group WA langsung (tidak ada pilihan app)
   setTimeout(() => {
-    window.location.href = WA_GROUP_LINK;
-  }, 600);
+    const waUrl = `${WA_GROUP_LINK}`;
+    window.open(waUrl, '_blank');
+    // Copy pesan ke clipboard agar bisa di-paste di WA
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(pesan).then(() => {
+        showToast('Foto didownload! Teks laporan sudah di-copy — paste di WA Group 📋', 'success');
+      });
+    } else {
+      showToast('Foto didownload! Kirim ke Group WA yang terbuka.', 'success');
+    }
+  }, 800);
 
-  showToast('Foto tersimpan & teks di-copy! Di WA: attach foto + paste teks → kirim 📋', 'success');
-
-  // Log ke Firestore + reset
   await simpanLogKebersihan(catatan);
   retakeClean();
 }
