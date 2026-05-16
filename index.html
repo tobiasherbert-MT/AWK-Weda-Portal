@@ -909,10 +909,10 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="menu-card-title">Bahan Kimia</div>
             <div class="menu-card-sub">Catat penggunaan</div>
           </div>
-          <div class="menu-card purple" onclick="openWAGroup()">
+          <div class="menu-card purple" onclick="navigate('clean')">
             <div class="menu-card-icon">🧹</div>
             <div class="menu-card-title">Kebersihan</div>
-            <div class="menu-card-sub">Kirim foto ke Group WA</div>
+            <div class="menu-card-sub">Foto & kirim ke Group WA</div>
           </div>
         </div>
 
@@ -1550,7 +1550,7 @@ Contoh:
       <div class="nav-icon">🧪</div>
       <div class="nav-label">Kimia</div>
     </div>
-    <div class="nav-item" id="nav-clean" onclick="openWAGroup()">
+    <div class="nav-item" id="nav-clean" onclick="navigate('clean')">
       <div class="nav-icon">🧹</div>
       <div class="nav-label">Bersih</div>
     </div>
@@ -1613,6 +1613,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "28665770420",
   appId:             "1:28665770420:web:d31ebb96d15d21740d42e1"
 };
+
 
 /* ============================================================
    KOORDINAT LAB WBN — Ubah sesuai koordinat asli lab Anda
@@ -2758,7 +2759,7 @@ async function kirimKeWA() {
     showToast('Pilih area dan ambil foto dulu!', 'error'); return;
   }
 
-  // Kalau _name adalah email, ambil bagian sebelum @
+  // Format nama dari email kalau perlu
   const rawName = currentUser._name || '';
   const nama    = rawName.includes('@') ? rawName.split('@')[0] : (rawName || 'Analis');
   const waktu   = formatTime(new Date());
@@ -2774,24 +2775,7 @@ async function kirimKeWA() {
 
 _Dikirim via Anindya Weda-Bay Portal_`;
 
-  // Coba Web Share API (Android/iOS — bisa lampirkan foto langsung)
-  if (navigator.share) {
-    try {
-      const res  = await fetch(cleanPhoto);
-      const blob = await res.blob();
-      const file = new File([blob], `kebersihan_${selCleanJob}_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      await navigator.share({ files: [file], text: pesan });
-      // Berhasil share → log ke Firestore
-      await simpanLogKebersihan(catatan);
-      retakeClean();
-      return;
-    } catch(e) {
-      if (e.name === 'AbortError') return; // user cancel
-      // Gagal share file, fallback ke download
-    }
-  }
-
-  // Fallback: download foto dulu, lalu buka WA dengan teks
+  // 1) Auto-download foto ke HP
   const a = document.createElement('a');
   a.href = cleanPhoto;
   a.download = `Kebersihan_${selCleanJob}_${waktu.replace(':','-')}.jpg`;
@@ -2799,19 +2783,19 @@ _Dikirim via Anindya Weda-Bay Portal_`;
   a.click();
   document.body.removeChild(a);
 
-  setTimeout(() => {
-    const waUrl = `${WA_GROUP_LINK}`;
-    window.open(waUrl, '_blank');
-    // Copy pesan ke clipboard agar bisa di-paste di WA
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(pesan).then(() => {
-        showToast('Foto didownload! Teks laporan sudah di-copy — paste di WA Group 📋', 'success');
-      });
-    } else {
-      showToast('Foto didownload! Kirim ke Group WA yang terbuka.', 'success');
-    }
-  }, 800);
+  // 2) Copy teks laporan ke clipboard
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(pesan);
+  } catch(e) { /* fallback handled below */ }
 
+  // 3) Buka Group WA langsung (tidak ada pilihan app)
+  setTimeout(() => {
+    window.location.href = WA_GROUP_LINK;
+  }, 600);
+
+  showToast('Foto tersimpan & teks di-copy! Di WA: attach foto + paste teks → kirim 📋', 'success');
+
+  // Log ke Firestore + reset
   await simpanLogKebersihan(catatan);
   retakeClean();
 }
