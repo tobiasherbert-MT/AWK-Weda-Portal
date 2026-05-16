@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peraturan Lab — AWK Laboratory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:      #1F3A5F;
+    --navy-mid:  #2E5984;
+    --navy-card: #FFFFFF;
+    --navy-lite: #F0F4F8;
+    --gold:      #B8860B;
+    --gold-lite: #C9960F;
+    --gold-dim:  #8B6508;
+    --gold-bg:   #FEF9EE;
+    --white:     #1A2535;
+    --muted:     #5A6880;
+    --green:     #1A7A4A;
+    --green-dim: #0F4F30;
+    --green-bg:  #EAF7F0;
+    --red:       #C0392B;
+    --red-dim:   #7A2020;
+    --red-bg:    #FEF0EE;
+    --blue:      #1A5A9A;
+    --blue-bg:   #EBF3FB;
+    --yellow:    #A06B00;
+    --yellow-bg: #FFF8E6;
+    --border:    #D8E2ED;
+    --bg-page:   #EEF2F7;
+  }
+
+  @media print {
+    @page { size: A3 portrait; margin: 0; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+  }
+
+  body {
+    background: var(--bg-page);
+    font-family: 'Barlow', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .poster {
+    width: 794px;
+    min-height: 1123px;
+    background: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    padding: 36px 36px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 4px 32px rgba(30,60,100,0.10);
+  }
+
+  /* === Decorative bg pattern === */
+  .poster::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(31,58,95,0.025) 39px, rgba(31,58,95,0.025) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(31,58,95,0.025) 39px, rgba(31,58,95,0.025) 40px);
+    pointer-events: none;
+  }
+
+  .poster::after {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(31,58,95,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* === Header === */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lab-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(31,58,95,0.07);
+    border: 1px solid rgba(31,58,95,0.18);
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--navy);
+    text-transform: uppercase;
+    width: fit-content;
+  }
+
+  .lab-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--navy);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .main-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 46px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+    letter-spacing: -0.5px;
+    margin-top: 6px;
+  }
+
+  .main-title span {
+    color: var(--gold);
+  }
+
+  .subtitle {
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .company-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--navy);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .company-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    text-align: right;
+  }
+
+  .header-accent {
+    width: 48px; height: 4px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    margin-left: auto;
+  }
+
+  /* === Section Title === */
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--navy);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* === Rules grid === */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .rule-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rule-card.gold  { background: var(--gold-bg); border-color: #E8D49A; }
+  .rule-card.red   { background: var(--red-bg);  border-color: #F5C0BA; }
+  .rule-card.blue  { background: var(--blue-bg); border-color: #B3D0EC; }
+  .rule-card.green { background: var(--green-bg);border-color: #A3D9BF; }
+
+  .rule-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+
+  .rule-card.gold::before  { background: var(--gold); }
+  .rule-card.green::before { background: var(--green); }
+  .rule-card.red::before   { background: var(--red); }
+  .rule-card.blue::before  { background: var(--blue); }
+  .rule-card.yellow::before{ background: var(--yellow); }
+
+  .rule-no {
+    position: absolute;
+    top: 14px; right: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.05);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .rule-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .rule-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .rule-card.gold   .rule-title { color: var(--gold-dim); }
+  .rule-card.green  .rule-title { color: var(--green-dim); }
+  .rule-card.red    .rule-title { color: var(--red-dim); }
+  .rule-card.blue   .rule-title { color: #103D6E; }
+
+  .rule-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .time-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  .time-chip.ok {
+    background: rgba(26,122,74,0.10);
+    border: 1px solid rgba(26,122,74,0.25);
+    color: var(--green);
+  }
+
+  .time-chip.warn {
+    background: rgba(184,134,11,0.10);
+    border: 1px solid rgba(184,134,11,0.25);
+    color: var(--gold);
+  }
+
+  .time-chip.bad {
+    background: rgba(192,57,43,0.10);
+    border: 1px solid rgba(192,57,43,0.25);
+    color: var(--red);
+  }
+
+  .time-chip.info {
+    background: rgba(26,90,154,0.10);
+    border: 1px solid rgba(26,90,154,0.25);
+    color: var(--blue);
+  }
+
+  .chip-label {
+    font-family: 'Barlow', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+
+  .rule-desc {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .rule-desc strong {
+    color: #1A2535;
+    font-weight: 600;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+
+  .badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  .badge.red-badge   { background: rgba(192,57,43,0.10); color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
+  .badge.gold-badge  { background: rgba(184,134,11,0.10); color: var(--gold-dim); border: 1px solid rgba(184,134,11,0.2); }
+  .badge.green-badge { background: rgba(26,122,74,0.10); color: var(--green); border: 1px solid rgba(26,122,74,0.2); }
+  .badge.blue-badge  { background: rgba(26,90,154,0.10); color: var(--blue); border: 1px solid rgba(26,90,154,0.2); }
+
+  /* === Full-width card === */
+  .rule-card.full {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 16px 20px;
+  }
+
+  .rule-card.full .rule-main { flex: 1; }
+  .rule-card.full .time-row { flex-direction: row; }
+
+  /* === 5S Section === */
+  .fives-section {
+    position: relative;
+    z-index: 2;
+  }
+
+  .fives-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .s-card {
+    background: var(--navy);
+    border: 1px solid rgba(31,58,95,0.15);
+    border-radius: 7px;
+    padding: 14px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .s-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    opacity: 0.6;
+  }
+
+  .s-number {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .s-jp {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .s-id {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: 0.5px;
+  }
+
+  .s-desc {
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+  }
+
+  /* === Bottom row: Sanksi + Reward === */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .info-card {
+    background: #FAFBFD;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .info-card-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sanksi-list, .reward-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .sanksi-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .sanksi-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sanksi-item strong { color: #1A2535; font-weight: 600; }
+
+  /* === Footer === */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 2;
+  }
+
+  .footer-text {
+    font-size: 10px;
+    color: #A0AABD;
+    letter-spacing: 0.5px;
+  }
+
+  .footer-brand {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Print button */
+  .print-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--navy);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(31,58,95,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+    z-index: 999;
+  }
+
+  .print-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(31,58,95,0.35);
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Print / Simpan PDF</button>
+
+<div class="poster">
+
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <div class="header-left">
+      <div class="lab-badge">AWK Laboratory</div>
+      <div class="main-title">PERATURAN<br><span>LABORATORIUM</span></div>
+      <div class="subtitle">Berlaku untuk semua personel lab — Shift Pagi & Shift Malam</div>
+    </div>
+    <div class="header-right">
+      <div class="company-name">AWK Lab</div>
+      <div class="company-sub">PT. Anindya Wiraputra Konsult<br>ANINDYA WIRAPUTRA KONSULT<br>Weda Bay, Maluku Utara</div>
+      <div class="header-accent"></div>
+    </div>
+  </div>
+
+  <!-- ===== RULES ===== -->
+  <div style="position:relative;z-index:2;">
+    <div class="section-label">Aturan Wajib</div>
+
+    <div class="rules-grid">
+
+      <!-- RULE 1: JAM MASUK -->
+      <div class="rule-card gold">
+        <div class="rule-no">01</div>
+        <div class="rule-icon">⏰</div>
+        <div class="rule-title">Ketepatan Jam Masuk & Pulang</div>
+        <div class="rule-detail">
+          <div class="time-row">
+            <div class="time-chip warn">
+              <span class="chip-label">Pagi masuk</span>
+              07:20 WIT
+            </div>
+            <div class="time-chip warn">
+              <span class="chip-label">Malam masuk</span>
+              19:15 WIT
+            </div>
+          </div>
+          <div class="time-row">
+            <div class="time-chip ok">
+              <span class="chip-label">Pulang</span>
+              17:30 WIT / 05:30 WIT
+            </div>
+            <div class="badge gold-badge">Telat = dicatat</div>
+          </div>
+          <div class="rule-desc">Hadir tepat waktu = bentuk profesionalisme. <strong>Keterlambatan &gt;5 menit</strong> wajib dilaporkan ke Ketua Tim. Pulang sebelum jam tanpa izin = pelanggaran.</div>
+        </div>
+      </div>
+
+      <!-- RULE 2: GADGET -->
+      <div class="rule-card red">
+        <div class="rule-no">02</div>
+        <div class="rule-icon">📵</div>
+        <div class="rule-title">Fokus Kerja — No Gadget Pribadi</div>
+        <div class="rule-detail">
+          <div class="badge-row">
+            <span class="badge red-badge">Game</span>
+            <span class="badge red-badge">TikTok</span>
+            <span class="badge red-badge">Instagram</span>
+            <span class="badge red-badge">Medsos</span>
+          </div>
+          <div class="rule-desc"><strong>Dilarang keras</strong> di jam kerja. Boleh pas jam istirahat aja:</div>
+          <div class="time-row">
+            <div class="time-chip ok">
+              <span class="chip-label">Jam Istirahat Pagi </span>
+              11:50 – 13:30
+            </div>
+            <div class="time-chip ok">
+              <span class="chip-label">Jam Istirahat Malam </span>
+              23:50 – 01:30
+            </div>
+          </div>
+          <div class="rule-desc">Di luar jam itu → HP disimpan kecuali ada keperluan pekerjaan, fokus ke kerjaan. Kepergok = poin turun.</div>
+        </div>
+      </div>
+
+      <!-- RULE 3: TIDUR -->
+      <div class="rule-card blue">
+        <div class="rule-no">03</div>
+        <div class="rule-icon">🚫</div>
+        <div class="rule-title">Kondisi Prima — Dilarang Tidur</div>
+        <div class="rule-detail">
+          <div class="rule-desc"><strong>Dilarang</strong> tidur atau bersender di meja saat jam kerja aktif.</div>
+          <div class="time-row">
+            <div class="time-chip bad">
+              <span class="chip-label">Dilarang</span>
+              Di bawah 11:50 WIT / 23:50 WIT
+            </div>
+            <div class="time-chip bad">
+              <span class="chip-label">Dilarang</span>
+              Di atas 13:30 / 01:30 WIT
+            </div>
+          </div>
+          <div class="rule-desc">Ngantuk? → Cuci muka, minum kopi, jalan sebentar. <strong>Bilang ke Ketua Tim</strong> kalau memang butuh istirahat singkat. Jangan diem-diem tidur.</div>
+        </div>
+      </div>
+
+      <!-- RULE 4: BERSIH-BERSIH -->
+      <div class="rule-card green">
+        <div class="rule-no">04</div>
+        <div class="rule-icon">🧹</div>
+        <div class="rule-title">Wajib Bersih-Bersih</div>
+        <div class="rule-detail">
+          <div class="rule-desc">Setiap akhir shift, semua personel wajib ikut bersih-bersih area lab:</div>
+          <div class="time-row">
+            <div class="time-chip ok">
+              <span class="chip-label">Shift pagi</span>
+              16:30 WIT
+            </div>
+            <div class="time-chip ok">
+              <span class="chip-label">Shift malam</span>
+              04:30 WIT
+            </div>
+          </div>
+          <div class="badge-row">
+            <span class="badge green-badge">Meja kerja</span>
+            <span class="badge green-badge">Alat lab</span>
+            <span class="badge green-badge">Area sekitar</span>
+            <span class="badge green-badge">Lantai & sampah</span>
+          </div>
+          <div class="rule-desc">Nggak ada yang namanya "bukan tugas gue". Area lab = tanggung jawab bersama.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== 5S SECTION ===== -->
+  <div class="fives-section">
+    <div class="section-label">Budaya 5S — Standar Kerja Lab</div>
+    <div class="fives-grid">
+      <div class="s-card">
+        <div class="s-number">1S</div>
+        <div class="s-jp">SEIRI</div>
+        <div class="s-id">Ringkas</div>
+        <div class="s-desc">Pisahkan yang perlu & tidak perlu. Buang atau relokasi barang tak relevan.</div>
+      </div>
+      <div class="s-card">
+        <div class="s-number">2S</div>
+        <div class="s-jp">SEITON</div>
+        <div class="s-id">Rapi</div>
+        <div class="s-desc">Tata setiap alat ke tempatnya. Mudah dicari, mudah dikembalikan.</div>
+      </div>
+      <div class="s-card">
+        <div class="s-number">3S</div>
+        <div class="s-jp">SEISO</div>
+        <div class="s-id">Resik</div>
+        <div class="s-desc">Area kerja bersih setiap saat. Tumpahan langsung dibersihkan.</div>
+      </div>
+      <div class="s-card">
+        <div class="s-number">4S</div>
+        <div class="s-jp">SEIKETSU</div>
+        <div class="s-id">Rawat</div>
+        <div class="s-desc">Konsisten setiap hari. Bukan cuma pas ada inspeksi. Ini standar, bukan event.</div>
+      </div>
+      <div class="s-card">
+        <div class="s-number">5S</div>
+        <div class="s-jp">SHITSUKE</div>
+        <div class="s-id">Rajin</div>
+        <div class="s-desc">Disiplin diri. Nggak perlu diingatkan terus. Jadilah contoh buat yang lain.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SANKSI + REWARD ===== -->
+  <div class="bottom-row">
+
+    <!-- SANKSI -->
+    <div class="info-card">
+      <div class="info-card-title" style="color:var(--red);">
+        ⚖️ Sanksi — Bertingkat & Adil
+      </div>
+      <div class="sanksi-list">
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:#E0A800;"></div>
+          <span><strong>Level 1 — Ringan:</strong> Skor ≤2 pada 1 aspek → teguran lisan + coaching.</span>
+        </div>
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:#D06A00;"></div>
+          <span><strong>Level 2 — Sedang:</strong> 3× Level 1 dalam seminggu → SP1 + briefing khusus.</span>
+        </div>
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:var(--red);"></div>
+          <span><strong>Level 3 — Berat:</strong> Berulang / tidur >2× sebulan → SP2 + grade turun.</span>
+        </div>
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:#7A1515;"></div>
+          <span><strong>Level 4 — K3:</strong> Pelanggaran keselamatan serius → SP3 + evaluasi formal.</span>
+        </div>
+      </div>
+      <div class="sanksi-item" style="margin-top:4px; color:rgba(139,150,165,0.6); font-size:10px;">
+        Tujuannya pembinaan, bukan hukuman. Komunikasikan dulu, sanksi belakangan.
+      </div>
+    </div>
+
+    <!-- REWARD -->
+    <div class="info-card">
+      <div class="info-card-title" style="color:var(--gold-dim);">
+        🏆 Apresiasi — Buat yang Konsisten
+      </div>
+      <div class="reward-list">
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:var(--gold);"></div>
+          <span><strong>🥇 Top Performer:</strong> Rata-rata skor ≥90/bulan → apresiasi publik + diprioritaskan mengikuti pelatihan yang tersedia.</span>
+        </div>
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:var(--green);"></div>
+          <span><strong>⭐ Konsisten Baik:</strong> Grade B selama 3 bulan berturut → Diberi sertifikat.</span>
+        </div>
+        <div class="sanksi-item">
+          <div class="sanksi-dot" style="background:var(--blue);"></div>
+          <span><strong>🚀 Most Improved:</strong> Naik ≥15 poin vs bulan lalu → apresiasi publik di briefing.</span>
+        </div>
+      </div>
+      <div style="margin-top:8px; padding:8px 10px; background:rgba(31,58,95,0.05); border-radius:5px; border-left:2px solid var(--navy);">
+        <div style="font-size:10.5px; color:var(--navy); font-weight:600; margin-bottom:3px;">Sistem Penilaian</div>
+        <div style="font-size:10px; color:var(--muted); line-height:1.5;">Skala 1–5 per aspek · 10 aspek · Total max 50 poin/hari<br>A ≥45 · B ≥40 · C ≥35 · D ≥30 · E &lt;30</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="footer">
+    <div class="footer-text">Rev. 00 · Berlaku sejak disetujui · Hubungi Manajer Lab untuk klarifikasi</div>
+    <div class="footer-brand">AWK Laboratory</div>
+  </div>
+
+</div>
+</body>
+</html>
