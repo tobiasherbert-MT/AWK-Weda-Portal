@@ -854,7 +854,7 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
           border-radius:var(--r-md);padding:18px 20px;cursor:pointer;
           box-shadow:0 6px 20px rgba(26,58,110,.25);
           display:flex;align-items:center;gap:14px;
-          margin-bottom:16px;position:relative;overflow:hidden;
+          margin-bottom:12px;position:relative;overflow:hidden;
           transition:transform .2s;
         " onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
           <div style="position:absolute;right:-20px;top:-20px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%;"></div>
@@ -864,6 +864,32 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:3px;font-weight:500;">Lihat prioritas & status job hari ini</div>
           </div>
           <div style="font-size:18px;color:#fff;opacity:.7;position:relative;">›</div>
+        </div>
+
+        <!-- Peraturan + Handover (2 cards) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+          <div onclick="openPeraturan()" style="
+            background:linear-gradient(135deg,#1F3A5F 0%,#2E5984 100%);
+            border-radius:var(--r-md);padding:16px;cursor:pointer;
+            box-shadow:0 4px 14px rgba(31,58,95,.25);
+            position:relative;overflow:hidden;transition:transform .2s;
+          " onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+            <div style="position:absolute;right:-15px;top:-15px;width:60px;height:60px;background:rgba(184,134,11,.18);border-radius:50%;"></div>
+            <div style="font-size:26px;margin-bottom:8px;position:relative;">📋</div>
+            <div style="font-size:13.5px;font-weight:800;color:#fff;position:relative;">Peraturan Lab</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.7);margin-top:2px;position:relative;">SOP & aturan kerja</div>
+          </div>
+          <div onclick="navigate('handover')" style="
+            background:linear-gradient(135deg,#7C2D12 0%,#C2410C 100%);
+            border-radius:var(--r-md);padding:16px;cursor:pointer;
+            box-shadow:0 4px 14px rgba(124,45,18,.25);
+            position:relative;overflow:hidden;transition:transform .2s;
+          " onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+            <div style="position:absolute;right:-15px;top:-15px;width:60px;height:60px;background:rgba(255,255,255,.1);border-radius:50%;"></div>
+            <div style="font-size:26px;margin-bottom:8px;position:relative;">🔄</div>
+            <div style="font-size:13.5px;font-weight:800;color:#fff;position:relative;">Handover</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.78);margin-top:2px;position:relative;">Catatan antar shift</div>
+          </div>
         </div>
 
         <div class="section-label" style="margin-bottom:10px;">Menu Utama</div>
@@ -888,6 +914,25 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="menu-card-title">Kebersihan</div>
             <div class="menu-card-sub">Foto per pekerjaan</div>
           </div>
+        </div>
+
+        <!-- Penilaian Card -->
+        <div onclick="navigate('penilaian')" style="
+          margin-top:12px;
+          background:linear-gradient(135deg,#5B21B6 0%,#7C3AED 50%,#A78BFA 100%);
+          border-radius:var(--r-md);padding:18px 20px;cursor:pointer;
+          box-shadow:0 6px 20px rgba(91,33,182,.3);
+          display:flex;align-items:center;gap:14px;
+          position:relative;overflow:hidden;
+          transition:transform .2s;
+        " onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+          <div style="position:absolute;right:-20px;top:-20px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%;"></div>
+          <div style="font-size:38px;flex-shrink:0;position:relative;">⭐</div>
+          <div style="flex:1;position:relative;">
+            <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;" id="penilaian-card-title">Penilaian Saya</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:3px;font-weight:500;" id="penilaian-card-sub">Lihat evaluasi performa</div>
+          </div>
+          <div style="font-size:18px;color:#fff;opacity:.7;position:relative;">›</div>
         </div>
       </div>
 
@@ -1027,9 +1072,9 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="cr-lbl">Basri</div>
             <div class="cr-check"></div>
           </div>
-          <div class="choice-row" onclick="pickJob('pic','Ivan',this)">
+          <div class="choice-row" onclick="pickJob('pic','Ian',this)">
             <div class="cr-ico">👨‍🔬</div>
-            <div class="cr-lbl">Ivan</div>
+            <div class="cr-lbl">Ian</div>
             <div class="cr-check"></div>
           </div>
         </div>
@@ -1315,6 +1360,177 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
     </div>
   </div>
 
+  <!-- ================================================
+       SCREEN: HANDOVER SHIFT
+       ============================================== -->
+  <div class="screen" id="screen-handover">
+    <div class="page-header">
+      <div class="header-icon">🔄</div>
+      <div class="header-titles">
+        <div class="header-title">Handover Shift</div>
+        <div class="header-sub">Catatan serah-terima antar shift</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <!-- Admin form (only visible to admin) -->
+      <div id="ho-admin-form" style="display:none;">
+        <div class="form-section">
+          <div class="form-section-title">✍️ Buat Handover Baru</div>
+          <div class="form-row">
+            <label class="form-lbl">Dari Shift → Ke Shift</label>
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">
+              <select class="input-f" id="ho-from">
+                <option value="Pagi">🌅 Pagi</option>
+                <option value="Malam">🌙 Malam</option>
+              </select>
+              <span style="color:var(--text-muted);font-weight:700;">→</span>
+              <select class="input-f" id="ho-to">
+                <option value="Malam">🌙 Malam</option>
+                <option value="Pagi">🌅 Pagi</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:14px;">
+            <label class="form-lbl">Komoditi</label>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600;">
+                <input type="checkbox" id="ho-mineral" checked style="width:18px;height:18px;accent-color:var(--primary);"> Mineral
+              </label>
+              <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600;">
+                <input type="checkbox" id="ho-batubara" style="width:18px;height:18px;accent-color:var(--primary);"> Batu Bara
+              </label>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:14px;">
+            <label class="form-lbl">Catatan Handover</label>
+            <textarea class="input-f" id="ho-notes" rows="6" placeholder="Tulis informasi penting untuk shift selanjutnya...
+Contoh:
+- Sampel SHV-001 belum di-furnace, suhu sudah disetting
+- HCl sisa 50mL, perlu stok ulang
+- Timbangan #2 perlu kalibrasi besok pagi" style="font-family:var(--font);resize:vertical;min-height:140px;line-height:1.6;"></textarea>
+          </div>
+          <button class="btn-primary" onclick="submitHandover()" style="margin-top:4px;">📤 Kirim Handover</button>
+        </div>
+      </div>
+
+      <!-- Info untuk non-admin -->
+      <div id="ho-info-card" style="display:none;margin:16px;">
+        <div style="background:var(--warning-light);border:1.5px solid #FDE68A;border-radius:var(--r-md);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;">
+          <div style="font-size:20px;">ℹ️</div>
+          <div style="font-size:13px;color:#92400E;line-height:1.6;">
+            <strong>Mode lihat saja.</strong> Hanya Lab PIC yang dapat membuat dan menghapus catatan handover.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar" style="margin-top:16px;">
+        <div class="tab-item active" onclick="switchHandoverTab('today',this)">📅 Hari Ini</div>
+        <div class="tab-item" onclick="switchHandoverTab('recent',this)">📋 Riwayat</div>
+      </div>
+
+      <!-- Handover list -->
+      <div id="ho-list" style="padding:16px;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       SCREEN: PENILAIAN
+       ============================================== -->
+  <div class="screen" id="screen-penilaian">
+    <div class="page-header">
+      <div class="header-icon">⭐</div>
+      <div class="header-titles">
+        <div class="header-title" id="penilaian-title">Penilaian Saya</div>
+        <div class="header-sub" id="penilaian-sub">Evaluasi performa kerja</div>
+      </div>
+    </div>
+    <div class="screen-body">
+
+      <!-- ADMIN VIEW -->
+      <div id="pn-admin-view" style="display:none;">
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="switchPenilaianTab('beri',this)">✍️ Beri Nilai</div>
+          <div class="tab-item" onclick="switchPenilaianTab('riwayat',this)">📋 Riwayat</div>
+        </div>
+
+        <!-- Tab: Beri Nilai -->
+        <div id="pn-tab-beri">
+          <div class="form-section">
+            <div class="form-section-title">⭐ Beri Penilaian Analis</div>
+            <div class="form-row">
+              <label class="form-lbl">Pilih Analis</label>
+              <select class="input-f" id="pn-target"></select>
+            </div>
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Periode</label>
+              <input class="input-f" type="month" id="pn-period">
+            </div>
+
+            <!-- Kategori penilaian dengan stars -->
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Penilaian per Kategori (1-5)</label>
+              <div id="pn-categories" style="margin-top:8px;display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Catatan / Feedback</label>
+              <textarea class="input-f" id="pn-notes" rows="4" placeholder="Catatan atau saran untuk analis..." style="font-family:var(--font);resize:vertical;min-height:90px;"></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="submitPenilaian()" style="margin-top:4px;">💾 Simpan Penilaian</button>
+          </div>
+        </div>
+
+        <!-- Tab: Riwayat -->
+        <div id="pn-tab-riwayat" style="display:none;">
+          <div style="padding:16px;">
+            <div class="section-label" style="margin-bottom:12px;">Semua Penilaian</div>
+            <div id="pn-admin-list">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALIS VIEW -->
+      <div id="pn-analis-view" style="display:none;">
+        <!-- Overall Score Card -->
+        <div style="margin:16px;">
+          <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED 60%,#A78BFA);border-radius:var(--r-md);padding:24px;text-align:center;color:#fff;box-shadow:var(--shadow-md);position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,.08);border-radius:50%;"></div>
+            <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.75;position:relative;">Rata-rata Nilai</div>
+            <div style="font-size:48px;font-weight:800;margin-top:6px;letter-spacing:-1px;position:relative;" id="pn-score-avg">—</div>
+            <div style="font-size:13px;opacity:.8;margin-top:2px;position:relative;" id="pn-score-stars">☆☆☆☆☆</div>
+            <div style="font-size:11px;opacity:.6;margin-top:8px;position:relative;" id="pn-score-count">Belum ada penilaian</div>
+          </div>
+        </div>
+
+        <!-- Per Kategori -->
+        <div style="margin:0 16px 16px;">
+          <div class="section-label" style="margin-bottom:10px;">Rincian per Kategori</div>
+          <div id="pn-category-bd" style="background:var(--card);border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--shadow-sm);">
+            <div class="spinner" style="margin:8px auto;"></div>
+          </div>
+        </div>
+
+        <!-- Riwayat Penilaian -->
+        <div style="padding:0 16px 16px;">
+          <div class="section-label" style="margin-bottom:12px;">Riwayat Penilaian Saya</div>
+          <div id="pn-my-list">
+            <div class="empty-box" style="padding:16px 0;">
+              <div class="empty-ico" style="font-size:32px;">⭐</div>
+              <div class="empty-txt" style="font-size:12px;">Belum ada penilaian yang diberikan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ===== BOTTOM NAV ===== -->
   <nav id="bottom-nav">
     <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
@@ -1403,7 +1619,7 @@ const FIREBASE_CONFIG = {
    ============================================================ */
 const LAB_LAT      = 0.474453;   // ← Latitude lab (contoh Weda Bay)
 const LAB_LNG      = 128.001445;  // ← Longitude lab
-const MAX_RADIUS_M = 200;       // Radius absen maksimum (meter)
+const MAX_RADIUS_M = 200;        // Radius absen maksimum (meter)
 
 /* ============================================================
    FIRESTORE SECURITY RULES (paste ke Firebase Console → Firestore → Rules)
@@ -1534,6 +1750,8 @@ async function navigate(screen) {
   if (screen === 'chemical')  await initChemical();
   if (screen === 'clean')     initClean();
   if (screen === 'admin')     initAdmin();
+  if (screen === 'handover')  initHandover();
+  if (screen === 'penilaian') await initPenilaian();
 }
 
 // ============================================================
@@ -1579,6 +1797,13 @@ async function doLogout() {
 async function loadDashboard() {
   document.getElementById('dash-name').textContent = currentUser._name || '—';
   document.getElementById('dash-date').textContent = formatDate(new Date());
+
+  // Update Penilaian card based on role
+  const isAdmin = currentRole === 'admin';
+  const pnTitle = document.getElementById('penilaian-card-title');
+  const pnSub   = document.getElementById('penilaian-card-sub');
+  if (pnTitle) pnTitle.textContent = isAdmin ? 'Penilaian Tim' : 'Penilaian Saya';
+  if (pnSub)   pnSub.textContent   = isAdmin ? 'Beri nilai performa analis' : 'Lihat evaluasi performa Anda';
 
   const today = todayStr();
   const m1 = new Date(); m1.setDate(1);
@@ -1925,6 +2150,400 @@ const WA_GROUP_LINK = 'https://chat.whatsapp.com/Ga2bdnvbwwd2xBU2rIa5Bp';
 function openMonitoring() {
   // File monitoring.html harus diupload ke folder yang sama di GitHub
   window.open('monitoring.html', '_blank');
+}
+
+// ============================================================
+// PERATURAN LAB — Buka peraturan.html di tab baru
+// ============================================================
+function openPeraturan() {
+  window.open('peraturan.html', '_blank');
+}
+
+// ============================================================
+// HANDOVER SHIFT
+// ============================================================
+let handoverTab = 'today';
+
+function initHandover() {
+  // Show admin form only for admins
+  const isAdmin = currentRole === 'admin';
+  document.getElementById('ho-admin-form').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('ho-info-card').style.display  = isAdmin ? 'none' : 'block';
+  loadHandovers();
+}
+
+function switchHandoverTab(tab, el) {
+  handoverTab = tab;
+  document.querySelectorAll('#screen-handover .tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadHandovers();
+}
+
+async function submitHandover() {
+  if (currentRole !== 'admin') { showToast('Hanya admin yang dapat membuat handover.','error'); return; }
+  const from   = document.getElementById('ho-from').value;
+  const to     = document.getElementById('ho-to').value;
+  const notes  = document.getElementById('ho-notes').value.trim();
+  const mineral = document.getElementById('ho-mineral').checked;
+  const batubara = document.getElementById('ho-batubara').checked;
+  const komoditi = [];
+  if (mineral) komoditi.push('Mineral');
+  if (batubara) komoditi.push('Batu Bara');
+
+  if (!notes) { showToast('Tulis catatan handover terlebih dahulu.','error'); return; }
+  if (komoditi.length === 0) { showToast('Pilih minimal 1 komoditi.','error'); return; }
+
+  try {
+    await db.collection('handovers').add({
+      authorId: currentUser.uid,
+      authorName: currentUser._name,
+      fromShift: from,
+      toShift: to,
+      komoditi, notes,
+      date: todayStr(),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Handover berhasil dikirim! ✅','success');
+    document.getElementById('ho-notes').value = '';
+    loadHandovers();
+  } catch(e) {
+    showToast('Gagal kirim: ' + e.message, 'error');
+  }
+}
+
+async function loadHandovers() {
+  const list = document.getElementById('ho-list');
+  list.innerHTML = '<div class="spinner"></div>';
+  try {
+    let q;
+    if (handoverTab === 'today') {
+      q = db.collection('handovers').where('date','==',todayStr()).orderBy('timestamp','desc');
+    } else {
+      q = db.collection('handovers').orderBy('timestamp','desc').limit(30);
+    }
+    const snap = await q.get();
+    if (snap.empty) {
+      list.innerHTML = `<div class="empty-box" style="padding:32px 16px;">
+        <div class="empty-ico" style="font-size:40px;">📭</div>
+        <div class="empty-txt">Belum ada catatan handover ${handoverTab==='today'?'hari ini':''}</div>
+      </div>`;
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(doc => {
+      const d  = doc.data();
+      const ts = d.timestamp?.toDate ? d.timestamp.toDate() : null;
+      const time = ts ? formatTime(ts) : '—';
+      const dt   = ts ? ts.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : (d.date||'—');
+      const komTags = (d.komoditi||[]).map(k => {
+        const c = k==='Mineral' ? '#1A5A9A' : '#7C2D12';
+        const bg = k==='Mineral' ? '#EBF3FB' : '#FEF3F2';
+        return `<span style="background:${bg};color:${c};padding:3px 10px;border-radius:6px;font-size:10.5px;font-weight:700;">${k}</span>`;
+      }).join('');
+      const isAdmin = currentRole === 'admin';
+      list.innerHTML += `
+        <div style="background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:12px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#FFF7ED,#FEF3F2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--text);">
+              ${d.fromShift==='Pagi'?'🌅':'🌙'} ${d.fromShift}
+              <span style="color:var(--text-muted);">→</span>
+              ${d.toShift==='Pagi'?'🌅':'🌙'} ${d.toShift}
+            </div>
+            <div style="flex:1;text-align:right;font-size:11px;color:var(--text-muted);font-weight:600;">${dt}</div>
+          </div>
+          ${komTags ? `<div style="padding:10px 16px 0;display:flex;gap:6px;">${komTags}</div>` : ''}
+          <div style="padding:14px 16px;font-size:13.5px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${escapeHtml(d.notes||'')}</div>
+          <div style="padding:0 16px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+            <span>✍️ ${escapeHtml(d.authorName||'—')} • ${time}</span>
+            ${isAdmin ? `<button onclick="deleteHandover('${doc.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--danger);padding:4px 8px;">🗑️</button>` : ''}
+          </div>
+        </div>`;
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
+  }
+}
+
+async function deleteHandover(id) {
+  if (currentRole !== 'admin') return;
+  if (!confirm('Hapus catatan handover ini?')) return;
+  try {
+    await db.collection('handovers').doc(id).delete();
+    showToast('Handover dihapus.','success');
+    loadHandovers();
+  } catch(e) { showToast('Gagal hapus: '+e.message,'error'); }
+}
+
+function escapeHtml(s) {
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// ============================================================
+// PENILAIAN ANALIS
+// ============================================================
+const PN_KATEGORI = [
+  { id:'kebersihan', label:'Kebersihan Area Kerja',  ico:'🧹' },
+  { id:'disiplin',   label:'Disiplin & Kehadiran',   ico:'🕐' },
+  { id:'ketepatan',  label:'Ketepatan Hasil Kerja',  ico:'🎯' },
+  { id:'kerjasama',  label:'Kerjasama Tim',          ico:'🤝' },
+  { id:'inisiatif',  label:'Inisiatif & Tanggung Jawab', ico:'💡' }
+];
+let pnScores = {};
+
+async function initPenilaian() {
+  const isAdmin = currentRole === 'admin';
+  document.getElementById('pn-admin-view').style.display  = isAdmin ? 'block' : 'none';
+  document.getElementById('pn-analis-view').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('penilaian-title').textContent = isAdmin ? 'Penilaian Tim' : 'Penilaian Saya';
+  document.getElementById('penilaian-sub').textContent   = isAdmin ? 'Nilai performa analis' : 'Evaluasi performa Anda';
+
+  if (isAdmin) {
+    await loadAnalisList();
+    buildPenilaianCategories();
+    // Set default period to current month
+    const now = new Date();
+    document.getElementById('pn-period').value = now.toISOString().slice(0,7);
+  } else {
+    loadMyPenilaian();
+  }
+}
+
+async function loadAnalisList() {
+  const sel = document.getElementById('pn-target');
+  try {
+    const snap = await db.collection('users').orderBy('name').get();
+    const opts = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      // Boleh nilai analis maupun admin lain
+      opts.push(`<option value="${doc.id}">${escapeHtml(d.name||d.email||'-')} ${d.role==='admin'?'(PIC)':''}</option>`);
+    });
+    sel.innerHTML = opts.length ? opts.join('') : '<option value="">— Belum ada user —</option>';
+  } catch(e) { sel.innerHTML = '<option>Gagal memuat</option>'; }
+}
+
+function buildPenilaianCategories() {
+  pnScores = {};
+  const wrap = document.getElementById('pn-categories');
+  wrap.innerHTML = PN_KATEGORI.map(cat => {
+    pnScores[cat.id] = 0;
+    return `
+    <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:18px;">${cat.ico}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--text);flex:1;">${cat.label}</span>
+        <span id="pn-val-${cat.id}" style="font-size:13px;font-weight:800;color:var(--primary);">—</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        ${[1,2,3,4,5].map(n => `
+          <div onclick="setPnScore('${cat.id}',${n})" data-cat="${cat.id}" data-val="${n}"
+            class="pn-star"
+            style="flex:1;text-align:center;padding:8px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;transition:all .15s;">
+            ☆
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setPnScore(catId, val) {
+  pnScores[catId] = val;
+  const stars = document.querySelectorAll(`[data-cat="${catId}"]`);
+  stars.forEach(s => {
+    const v = parseInt(s.dataset.val);
+    if (v <= val) {
+      s.style.background = '#FEF3C7';
+      s.style.borderColor = '#F59E0B';
+      s.style.color = '#F59E0B';
+      s.textContent = '★';
+    } else {
+      s.style.background = 'var(--card)';
+      s.style.borderColor = 'var(--border)';
+      s.style.color = 'var(--text-muted)';
+      s.textContent = '☆';
+    }
+  });
+  const lbls = ['—','Kurang','Cukup','Baik','Sangat Baik','Excellent'];
+  document.getElementById('pn-val-'+catId).textContent = val + '/5 — ' + lbls[val];
+}
+
+function switchPenilaianTab(tab, el) {
+  document.querySelectorAll('#screen-penilaian .tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pn-tab-beri').style.display    = tab==='beri'    ? 'block' : 'none';
+  document.getElementById('pn-tab-riwayat').style.display = tab==='riwayat' ? 'block' : 'none';
+  if (tab === 'riwayat') loadAllPenilaian();
+}
+
+async function submitPenilaian() {
+  if (currentRole !== 'admin') { showToast('Hanya admin yang dapat memberi nilai.','error'); return; }
+  const targetId = document.getElementById('pn-target').value;
+  const period   = document.getElementById('pn-period').value;
+  const notes    = document.getElementById('pn-notes').value.trim();
+  if (!targetId) { showToast('Pilih analis terlebih dahulu.','error'); return; }
+  if (!period)   { showToast('Pilih periode penilaian.','error'); return; }
+
+  // Validate all scores filled
+  const empty = PN_KATEGORI.filter(c => !pnScores[c.id] || pnScores[c.id] === 0);
+  if (empty.length > 0) {
+    showToast(`Belum diisi: ${empty.map(c=>c.label).join(', ')}`,'error'); return;
+  }
+
+  // Get target user name
+  const targetDoc = await db.collection('users').doc(targetId).get();
+  const targetName = targetDoc.exists ? (targetDoc.data().name || targetDoc.data().email) : '—';
+
+  // Calculate average
+  const vals = Object.values(pnScores);
+  const avg  = vals.reduce((a,b)=>a+b,0) / vals.length;
+
+  try {
+    await db.collection('evaluations').add({
+      targetUserId: targetId,
+      targetUserName: targetName,
+      evaluatorId: currentUser.uid,
+      evaluatorName: currentUser._name,
+      scores: { ...pnScores },
+      avgScore: parseFloat(avg.toFixed(2)),
+      period,
+      notes,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast(`Penilaian untuk ${targetName} tersimpan! ✅`,'success');
+    document.getElementById('pn-notes').value = '';
+    buildPenilaianCategories(); // reset stars
+  } catch(e) { showToast('Gagal simpan: '+e.message,'error'); }
+}
+
+async function loadAllPenilaian() {
+  const list = document.getElementById('pn-admin-list');
+  list.innerHTML = '<div class="spinner"></div>';
+  try {
+    const snap = await db.collection('evaluations').orderBy('timestamp','desc').limit(50).get();
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty-box"><div class="empty-ico">⭐</div><div class="empty-txt">Belum ada penilaian</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(doc => {
+      const d  = doc.data();
+      const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      const stars = renderStars(d.avgScore);
+      list.innerHTML += `
+        <div style="background:var(--card);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-xs);margin-bottom:10px;border:1px solid var(--border);">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;">${(d.targetUserName||'?')[0].toUpperCase()}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13.5px;font-weight:800;color:var(--text);">${escapeHtml(d.targetUserName||'—')}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Periode ${d.period||'—'} • ${ts}</div>
+              <div style="margin-top:4px;font-size:14px;">${stars} <span style="font-size:12px;color:var(--text-muted);font-weight:600;">${d.avgScore?.toFixed(1)||'—'}/5</span></div>
+            </div>
+            <button onclick="deletePenilaian('${doc.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--danger);padding:4px;">🗑️</button>
+          </div>
+          ${d.notes ? `<div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12.5px;color:var(--text-mid);line-height:1.5;">${escapeHtml(d.notes)}</div>`: ''}
+        </div>`;
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
+  }
+}
+
+async function deletePenilaian(id) {
+  if (currentRole !== 'admin') return;
+  if (!confirm('Hapus penilaian ini?')) return;
+  await db.collection('evaluations').doc(id).delete();
+  showToast('Penilaian dihapus.','success');
+  loadAllPenilaian();
+}
+
+async function loadMyPenilaian() {
+  try {
+    const snap = await db.collection('evaluations')
+      .where('targetUserId','==',currentUser.uid)
+      .orderBy('timestamp','desc').get();
+
+    if (snap.empty) {
+      document.getElementById('pn-score-avg').textContent = '—';
+      document.getElementById('pn-score-stars').textContent = '☆☆☆☆☆';
+      document.getElementById('pn-score-count').textContent = 'Belum ada penilaian';
+      document.getElementById('pn-category-bd').innerHTML = '<div class="empty-txt" style="font-size:12px;text-align:center;">Tidak ada data kategori</div>';
+      document.getElementById('pn-my-list').innerHTML = '<div class="empty-box" style="padding:16px 0;"><div class="empty-ico" style="font-size:32px;">⭐</div><div class="empty-txt" style="font-size:12px;">Belum ada penilaian yang diberikan</div></div>';
+      return;
+    }
+
+    // Aggregate
+    const all = [];
+    const catSum = {}; const catCnt = {};
+    PN_KATEGORI.forEach(c => { catSum[c.id] = 0; catCnt[c.id] = 0; });
+    let totalSum = 0, totalCnt = 0;
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      all.push({ id: doc.id, ...d });
+      totalSum += d.avgScore || 0;
+      totalCnt++;
+      PN_KATEGORI.forEach(c => {
+        if (d.scores && typeof d.scores[c.id] === 'number') {
+          catSum[c.id] += d.scores[c.id];
+          catCnt[c.id]++;
+        }
+      });
+    });
+
+    const avg = totalCnt > 0 ? (totalSum / totalCnt) : 0;
+    document.getElementById('pn-score-avg').textContent = avg.toFixed(2);
+    document.getElementById('pn-score-stars').textContent = renderStars(avg, true);
+    document.getElementById('pn-score-count').textContent = `${totalCnt} penilaian diterima`;
+
+    // Category breakdown
+    document.getElementById('pn-category-bd').innerHTML = PN_KATEGORI.map(c => {
+      const catAvg = catCnt[c.id] > 0 ? (catSum[c.id] / catCnt[c.id]) : 0;
+      const pct = (catAvg / 5) * 100;
+      return `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12.5px;font-weight:600;color:var(--text);">${c.ico} ${c.label}</span>
+            <span style="font-size:12px;font-weight:800;color:var(--primary);">${catAvg.toFixed(1)}/5</span>
+          </div>
+          <div style="background:var(--bg);height:8px;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;background:linear-gradient(90deg,#7C3AED,#A78BFA);width:${pct}%;border-radius:4px;transition:width .4s;"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // List
+    const listEl = document.getElementById('pn-my-list');
+    listEl.innerHTML = '';
+    all.forEach(d => {
+      const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      listEl.innerHTML += `
+        <div style="background:var(--card);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-xs);margin-bottom:10px;border:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Periode ${d.period||'—'}</div>
+              <div style="font-size:18px;font-weight:800;color:var(--primary);margin-top:4px;">${renderStars(d.avgScore, true)}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${d.avgScore?.toFixed(2)||'—'}/5 — ${ts}</div>
+            </div>
+          </div>
+          ${d.notes ? `<div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12.5px;color:var(--text-mid);line-height:1.5;">${escapeHtml(d.notes)}</div>`: ''}
+        </div>`;
+    });
+  } catch(e) {
+    document.getElementById('pn-my-list').innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
+  }
+}
+
+function renderStars(score, withHalf = false) {
+  if (!score) return '☆☆☆☆☆';
+  const rounded = withHalf ? Math.round(score * 2) / 2 : Math.round(score);
+  let out = '';
+  for (let i = 1; i <= 5; i++) {
+    if (i <= rounded) out += '★';
+    else if (i - 0.5 === rounded) out += '⯨';
+    else out += '☆';
+  }
+  return out;
 }
 
 function initClean() {
