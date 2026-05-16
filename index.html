@@ -909,10 +909,10 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="menu-card-title">Bahan Kimia</div>
             <div class="menu-card-sub">Catat penggunaan</div>
           </div>
-          <div class="menu-card purple" onclick="navigate('clean')">
+          <div class="menu-card purple" onclick="openWAGroup()">
             <div class="menu-card-icon">🧹</div>
             <div class="menu-card-title">Kebersihan</div>
-            <div class="menu-card-sub">Foto per pekerjaan</div>
+            <div class="menu-card-sub">Kirim foto ke Group WA</div>
           </div>
         </div>
 
@@ -1458,35 +1458,36 @@ Contoh:
 
         <!-- Tab: Beri Nilai -->
         <div id="pn-tab-beri">
-          <div class="form-section">
-            <div class="form-section-title">⭐ Beri Penilaian Analis</div>
-            <div class="form-row">
-              <label class="form-lbl">Pilih Analis</label>
-              <select class="input-f" id="pn-target"></select>
+          <!-- Shift + Tanggal Selector (sticky) -->
+          <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);padding:16px;color:#fff;">
+            <div style="font-size:12px;font-weight:700;opacity:.8;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">Penilaian Shift</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label style="font-size:11px;font-weight:600;opacity:.8;display:block;margin-bottom:4px;">Shift</label>
+                <select id="pn-shift" onchange="onShiftDateChange()" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:10px;color:#fff;font-size:14px;font-weight:600;font-family:var(--font);outline:none;backdrop-filter:blur(6px);">
+                  <option value="Pagi" style="color:#000;">🌅 Pagi</option>
+                  <option value="Malam" style="color:#000;">🌙 Malam</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;opacity:.8;display:block;margin-bottom:4px;">Tanggal</label>
+                <input type="date" id="pn-date" onchange="onShiftDateChange()" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:10px;color:#fff;font-size:14px;font-weight:600;font-family:var(--font);outline:none;backdrop-filter:blur(6px);">
+              </div>
             </div>
-            <div class="form-row" style="margin-top:14px;">
-              <label class="form-lbl">Periode</label>
-              <input class="input-f" type="month" id="pn-period">
-            </div>
+            <div id="pn-progress-info" style="margin-top:12px;font-size:12px;opacity:.85;font-weight:600;">—</div>
+          </div>
 
-            <!-- Kategori penilaian dengan stars -->
-            <div class="form-row" style="margin-top:14px;">
-              <label class="form-lbl">Penilaian per Kategori (1-5)</label>
-              <div id="pn-categories" style="margin-top:8px;display:flex;flex-direction:column;gap:10px;"></div>
-            </div>
-
-            <div class="form-row" style="margin-top:14px;">
-              <label class="form-lbl">Catatan / Feedback</label>
-              <textarea class="input-f" id="pn-notes" rows="4" placeholder="Catatan atau saran untuk analis..." style="font-family:var(--font);resize:vertical;min-height:90px;"></textarea>
-            </div>
-
-            <button class="btn-primary" onclick="submitPenilaian()" style="margin-top:4px;">💾 Simpan Penilaian</button>
+          <!-- Analyst list -->
+          <div style="padding:16px;">
+            <div class="section-label" style="margin-bottom:10px;">Daftar Analis</div>
+            <div id="pn-analis-cards"><div class="spinner"></div></div>
           </div>
         </div>
 
         <!-- Tab: Riwayat -->
         <div id="pn-tab-riwayat" style="display:none;">
           <div style="padding:16px;">
+            <button class="btn-primary" onclick="exportPenilaian()" style="margin-bottom:14px;background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 4px 16px rgba(5,150,105,.3);">📊 Export Penilaian ke Excel</button>
             <div class="section-label" style="margin-bottom:12px;">Semua Penilaian</div>
             <div id="pn-admin-list">
               <div class="spinner"></div>
@@ -1549,7 +1550,7 @@ Contoh:
       <div class="nav-icon">🧪</div>
       <div class="nav-label">Kimia</div>
     </div>
-    <div class="nav-item" id="nav-clean" onclick="navigate('clean')">
+    <div class="nav-item" id="nav-clean" onclick="openWAGroup()">
       <div class="nav-icon">🧹</div>
       <div class="nav-label">Bersih</div>
     </div>
@@ -2145,6 +2146,13 @@ async function loadChemLog() {
 const WA_GROUP_LINK = 'https://chat.whatsapp.com/Ga2bdnvbwwd2xBU2rIa5Bp';
 
 // ============================================================
+// KEBERSIHAN — Langsung buka Group WA
+// ============================================================
+function openWAGroup() {
+  window.open(WA_GROUP_LINK, '_blank');
+}
+
+// ============================================================
 // MONITORING SAMPEL — Buka file monitoring.html di tab baru
 // ============================================================
 function openMonitoring() {
@@ -2279,93 +2287,214 @@ function escapeHtml(s) {
 }
 
 // ============================================================
-// PENILAIAN ANALIS
+// PENILAIAN ANALIS — 10 Parameter, Batch per Shift
 // ============================================================
 const PN_KATEGORI = [
-  { id:'kebersihan', label:'Kebersihan Area Kerja',  ico:'🧹' },
-  { id:'disiplin',   label:'Disiplin & Kehadiran',   ico:'🕐' },
-  { id:'ketepatan',  label:'Ketepatan Hasil Kerja',  ico:'🎯' },
-  { id:'kerjasama',  label:'Kerjasama Tim',          ico:'🤝' },
-  { id:'inisiatif',  label:'Inisiatif & Tanggung Jawab', ico:'💡' }
+  { id:'jam_masuk',     label:'Jam Masuk',       ico:'🌅', short:'Jam Masuk' },
+  { id:'jam_pulang',    label:'Jam Pulang',      ico:'🌙', short:'Jam Pulang' },
+  { id:'fokus_kerja',   label:'Fokus Kerja',     ico:'🎯', short:'Fokus Kerja' },
+  { id:'kondisi_prima', label:'Kondisi Prima',   ico:'💪', short:'Kondisi Prima' },
+  { id:'bersih_bersih', label:'Bersih-bersih',   ico:'🧹', short:'Bersih-bersih' },
+  { id:'seiri',         label:'5S Seiri (Ringkas)',  ico:'1️⃣', short:'5S Seiri' },
+  { id:'seiton',        label:'5S Seiton (Rapi)',    ico:'2️⃣', short:'5S Seiton' },
+  { id:'seiso',         label:'5S Seiso (Resik)',    ico:'3️⃣', short:'5S Seiso' },
+  { id:'seiketsu',      label:'5S Seiketsu (Rawat)', ico:'4️⃣', short:'5S Seiketsu' },
+  { id:'shitsuke',      label:'5S Shitsuke (Rajin)', ico:'5️⃣', short:'5S Shitsuke' }
 ];
-let pnScores = {};
+
+let pnAnalisList = [];      // list semua analis
+let pnAnalisScores = {};    // { userId: { catId: score } }
+let pnAnalisNotes  = {};    // { userId: notes }
+let pnExisting     = {};    // existing eval untuk shift+date ini { userId: evalDoc }
 
 async function initPenilaian() {
   const isAdmin = currentRole === 'admin';
   document.getElementById('pn-admin-view').style.display  = isAdmin ? 'block' : 'none';
   document.getElementById('pn-analis-view').style.display = isAdmin ? 'none' : 'block';
   document.getElementById('penilaian-title').textContent = isAdmin ? 'Penilaian Tim' : 'Penilaian Saya';
-  document.getElementById('penilaian-sub').textContent   = isAdmin ? 'Nilai performa analis' : 'Evaluasi performa Anda';
+  document.getElementById('penilaian-sub').textContent   = isAdmin ? 'Nilai performa per shift' : 'Evaluasi performa Anda';
 
   if (isAdmin) {
-    await loadAnalisList();
-    buildPenilaianCategories();
-    // Set default period to current month
-    const now = new Date();
-    document.getElementById('pn-period').value = now.toISOString().slice(0,7);
+    // Default: today's date + Pagi shift
+    document.getElementById('pn-date').value = todayStr();
+    await loadAnalisForRating();
   } else {
     loadMyPenilaian();
   }
 }
 
-async function loadAnalisList() {
-  const sel = document.getElementById('pn-target');
-  try {
-    const snap = await db.collection('users').orderBy('name').get();
-    const opts = [];
-    snap.forEach(doc => {
-      const d = doc.data();
-      // Boleh nilai analis maupun admin lain
-      opts.push(`<option value="${doc.id}">${escapeHtml(d.name||d.email||'-')} ${d.role==='admin'?'(PIC)':''}</option>`);
-    });
-    sel.innerHTML = opts.length ? opts.join('') : '<option value="">— Belum ada user —</option>';
-  } catch(e) { sel.innerHTML = '<option>Gagal memuat</option>'; }
+async function onShiftDateChange() {
+  await loadAnalisForRating();
 }
 
-function buildPenilaianCategories() {
-  pnScores = {};
-  const wrap = document.getElementById('pn-categories');
-  wrap.innerHTML = PN_KATEGORI.map(cat => {
-    pnScores[cat.id] = 0;
+async function loadAnalisForRating() {
+  const container = document.getElementById('pn-analis-cards');
+  container.innerHTML = '<div class="spinner"></div>';
+
+  // 1) Get all users
+  try {
+    const usnap = await db.collection('users').orderBy('name').get();
+    pnAnalisList = [];
+    usnap.forEach(d => pnAnalisList.push({ id: d.id, ...d.data() }));
+  } catch(e) {
+    container.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat user: ${e.message}</div></div>`;
+    return;
+  }
+
+  // 2) Get existing evaluations for selected shift+date
+  const shift = document.getElementById('pn-shift').value;
+  const date  = document.getElementById('pn-date').value;
+  pnExisting = {};
+  try {
+    const esnap = await db.collection('evaluations')
+      .where('shift','==',shift).where('date','==',date).get();
+    esnap.forEach(d => {
+      const data = d.data();
+      pnExisting[data.targetUserId] = { id: d.id, ...data };
+    });
+  } catch(e) { /* silent */ }
+
+  // 3) Reset scores state
+  pnAnalisScores = {}; pnAnalisNotes = {};
+  pnAnalisList.forEach(u => {
+    if (pnExisting[u.id]) {
+      pnAnalisScores[u.id] = { ...pnExisting[u.id].scores };
+      pnAnalisNotes[u.id]  = pnExisting[u.id].notes || '';
+    } else {
+      pnAnalisScores[u.id] = {};
+      pnAnalisNotes[u.id]  = '';
+    }
+  });
+
+  // 4) Update progress info
+  const total = pnAnalisList.length;
+  const done  = Object.keys(pnExisting).length;
+  document.getElementById('pn-progress-info').textContent =
+    `📊 Progress: ${done} / ${total} analis sudah dinilai untuk shift ${shift} (${date})`;
+
+  // 5) Render cards
+  renderAnalisCards();
+}
+
+function renderAnalisCards() {
+  const container = document.getElementById('pn-analis-cards');
+  if (pnAnalisList.length === 0) {
+    container.innerHTML = '<div class="empty-box"><div class="empty-txt">Belum ada user</div></div>';
+    return;
+  }
+  container.innerHTML = pnAnalisList.map(u => {
+    const ex = pnExisting[u.id];
+    const isDone = !!ex;
+    const avg = ex ? ex.avgScore : null;
+    const init = (u.name||u.email||'?')[0].toUpperCase();
+    const roleTag = u.role==='admin' ? '<span style="font-size:9.5px;background:var(--primary-light);color:var(--primary);padding:2px 6px;border-radius:5px;font-weight:800;margin-left:5px;">PIC</span>' : '';
     return `
-    <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="font-size:18px;">${cat.ico}</span>
-        <span style="font-size:13px;font-weight:700;color:var(--text);flex:1;">${cat.label}</span>
-        <span id="pn-val-${cat.id}" style="font-size:13px;font-weight:800;color:var(--primary);">—</span>
-      </div>
-      <div style="display:flex;gap:6px;">
-        ${[1,2,3,4,5].map(n => `
-          <div onclick="setPnScore('${cat.id}',${n})" data-cat="${cat.id}" data-val="${n}"
-            class="pn-star"
-            style="flex:1;text-align:center;padding:8px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;transition:all .15s;">
-            ☆
+      <div id="pn-card-${u.id}" style="background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow-sm);border:1px solid ${isDone?'#A7F3D0':'var(--border)'};margin-bottom:10px;overflow:hidden;">
+        <div onclick="togglePnCard('${u.id}')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+          <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;">${init}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:800;color:var(--text);">${escapeHtml(u.name||u.email||'-')}${roleTag}</div>
+            <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
+              ${isDone ? `<span style="color:var(--success);font-weight:700;">✓ Sudah dinilai</span> • ${avg.toFixed(1)}/5 — ${renderStars(avg)}` : '<span style="color:var(--warning);font-weight:700;">⚠ Belum dinilai</span>'}
+            </div>
           </div>
-        `).join('')}
-      </div>
-    </div>`;
+          <div id="pn-card-arrow-${u.id}" style="font-size:18px;color:var(--text-muted);transition:transform .3s;">▼</div>
+        </div>
+        <div id="pn-card-body-${u.id}" style="display:none;border-top:1px solid var(--border);padding:14px 16px;background:var(--bg);"></div>
+      </div>`;
   }).join('');
 }
 
-function setPnScore(catId, val) {
-  pnScores[catId] = val;
-  const stars = document.querySelectorAll(`[data-cat="${catId}"]`);
-  stars.forEach(s => {
-    const v = parseInt(s.dataset.val);
-    if (v <= val) {
-      s.style.background = '#FEF3C7';
-      s.style.borderColor = '#F59E0B';
-      s.style.color = '#F59E0B';
-      s.textContent = '★';
+function togglePnCard(uid) {
+  const body  = document.getElementById('pn-card-body-'+uid);
+  const arrow = document.getElementById('pn-card-arrow-'+uid);
+  if (body.style.display === 'none' || body.style.display === '') {
+    body.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+    renderRatingForm(uid);
+  } else {
+    body.style.display = 'none';
+    arrow.style.transform = 'rotate(0)';
+  }
+}
+
+function renderRatingForm(uid) {
+  const body  = document.getElementById('pn-card-body-'+uid);
+  const scores = pnAnalisScores[uid] || {};
+  const notes  = pnAnalisNotes[uid] || '';
+  body.innerHTML = PN_KATEGORI.map(cat => {
+    const cur = scores[cat.id] || 0;
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:15px;">${cat.ico}</span>
+          <span style="font-size:12.5px;font-weight:700;color:var(--text);flex:1;">${cat.label}</span>
+          <span id="pn-v-${uid}-${cat.id}" style="font-size:12px;font-weight:800;color:${cur>0?'var(--primary)':'var(--text-muted)'};">${cur>0?cur+'/5':'—'}</span>
+        </div>
+        <div style="display:flex;gap:5px;">
+          ${[1,2,3,4,5].map(n => `
+            <div onclick="setPnScoreFor('${uid}','${cat.id}',${n})" data-cat="${cat.id}" data-val="${n}" data-uid="${uid}"
+              class="pn-star-${uid}"
+              style="flex:1;text-align:center;padding:8px 0;background:${n<=cur?'#FEF3C7':'var(--card)'};border:1.5px solid ${n<=cur?'#F59E0B':'var(--border)'};border-radius:7px;cursor:pointer;font-size:18px;color:${n<=cur?'#F59E0B':'var(--text-muted)'};transition:all .15s;font-weight:700;">
+              ${n<=cur?'★':'☆'}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('') + `
+    <div style="margin-top:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Catatan</label>
+      <textarea id="pn-note-${uid}" oninput="pnAnalisNotes['${uid}']=this.value" rows="2" placeholder="Catatan untuk ${escapeHtml(pnAnalisList.find(u=>u.id===uid)?.name||'analis')}..."
+        style="width:100%;padding:10px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font);outline:none;resize:vertical;min-height:60px;">${escapeHtml(notes)}</textarea>
+    </div>
+    <button onclick="saveRatingFor('${uid}')" style="margin-top:12px;width:100%;padding:13px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:#fff;border:none;border-radius:11px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:0 4px 14px rgba(91,33,182,.3);">
+      💾 Simpan Penilaian
+    </button>`;
+}
+
+function setPnScoreFor(uid, catId, val) {
+  if (!pnAnalisScores[uid]) pnAnalisScores[uid] = {};
+  pnAnalisScores[uid][catId] = val;
+  renderRatingForm(uid);
+  // Re-focus textarea if user was typing
+}
+
+async function saveRatingFor(uid) {
+  const scores = pnAnalisScores[uid] || {};
+  const empty  = PN_KATEGORI.filter(c => !scores[c.id]);
+  if (empty.length > 0) {
+    showToast(`Belum diisi: ${empty.map(c=>c.short).join(', ')}`, 'error');
+    return;
+  }
+  const u = pnAnalisList.find(x => x.id === uid);
+  if (!u) return;
+
+  const vals = Object.values(scores);
+  const avg  = vals.reduce((a,b)=>a+b,0) / vals.length;
+  const shift = document.getElementById('pn-shift').value;
+  const date  = document.getElementById('pn-date').value;
+  const notes = pnAnalisNotes[uid] || '';
+
+  try {
+    const existing = pnExisting[uid];
+    const payload = {
+      targetUserId: uid,
+      targetUserName: u.name || u.email,
+      evaluatorId: currentUser.uid,
+      evaluatorName: currentUser._name,
+      scores: { ...scores },
+      avgScore: parseFloat(avg.toFixed(2)),
+      shift, date, notes,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (existing) {
+      await db.collection('evaluations').doc(existing.id).update(payload);
     } else {
-      s.style.background = 'var(--card)';
-      s.style.borderColor = 'var(--border)';
-      s.style.color = 'var(--text-muted)';
-      s.textContent = '☆';
+      await db.collection('evaluations').add(payload);
     }
-  });
-  const lbls = ['—','Kurang','Cukup','Baik','Sangat Baik','Excellent'];
-  document.getElementById('pn-val-'+catId).textContent = val + '/5 — ' + lbls[val];
+    showToast(`✅ Penilaian ${u.name||u.email} tersimpan!`, 'success');
+    await loadAnalisForRating();
+  } catch(e) { showToast('Gagal simpan: '+e.message, 'error'); }
 }
 
 function switchPenilaianTab(tab, el) {
@@ -2376,51 +2505,11 @@ function switchPenilaianTab(tab, el) {
   if (tab === 'riwayat') loadAllPenilaian();
 }
 
-async function submitPenilaian() {
-  if (currentRole !== 'admin') { showToast('Hanya admin yang dapat memberi nilai.','error'); return; }
-  const targetId = document.getElementById('pn-target').value;
-  const period   = document.getElementById('pn-period').value;
-  const notes    = document.getElementById('pn-notes').value.trim();
-  if (!targetId) { showToast('Pilih analis terlebih dahulu.','error'); return; }
-  if (!period)   { showToast('Pilih periode penilaian.','error'); return; }
-
-  // Validate all scores filled
-  const empty = PN_KATEGORI.filter(c => !pnScores[c.id] || pnScores[c.id] === 0);
-  if (empty.length > 0) {
-    showToast(`Belum diisi: ${empty.map(c=>c.label).join(', ')}`,'error'); return;
-  }
-
-  // Get target user name
-  const targetDoc = await db.collection('users').doc(targetId).get();
-  const targetName = targetDoc.exists ? (targetDoc.data().name || targetDoc.data().email) : '—';
-
-  // Calculate average
-  const vals = Object.values(pnScores);
-  const avg  = vals.reduce((a,b)=>a+b,0) / vals.length;
-
-  try {
-    await db.collection('evaluations').add({
-      targetUserId: targetId,
-      targetUserName: targetName,
-      evaluatorId: currentUser.uid,
-      evaluatorName: currentUser._name,
-      scores: { ...pnScores },
-      avgScore: parseFloat(avg.toFixed(2)),
-      period,
-      notes,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showToast(`Penilaian untuk ${targetName} tersimpan! ✅`,'success');
-    document.getElementById('pn-notes').value = '';
-    buildPenilaianCategories(); // reset stars
-  } catch(e) { showToast('Gagal simpan: '+e.message,'error'); }
-}
-
 async function loadAllPenilaian() {
   const list = document.getElementById('pn-admin-list');
   list.innerHTML = '<div class="spinner"></div>';
   try {
-    const snap = await db.collection('evaluations').orderBy('timestamp','desc').limit(50).get();
+    const snap = await db.collection('evaluations').orderBy('timestamp','desc').limit(100).get();
     if (snap.empty) {
       list.innerHTML = '<div class="empty-box"><div class="empty-ico">⭐</div><div class="empty-txt">Belum ada penilaian</div></div>';
       return;
@@ -2430,14 +2519,15 @@ async function loadAllPenilaian() {
       const d  = doc.data();
       const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
       const stars = renderStars(d.avgScore);
+      const shiftIco = d.shift==='Pagi' ? '🌅' : '🌙';
       list.innerHTML += `
         <div style="background:var(--card);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-xs);margin-bottom:10px;border:1px solid var(--border);">
           <div style="display:flex;align-items:flex-start;gap:12px;">
             <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;">${(d.targetUserName||'?')[0].toUpperCase()}</div>
             <div style="flex:1;min-width:0;">
               <div style="font-size:13.5px;font-weight:800;color:var(--text);">${escapeHtml(d.targetUserName||'—')}</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Periode ${d.period||'—'} • ${ts}</div>
-              <div style="margin-top:4px;font-size:14px;">${stars} <span style="font-size:12px;color:var(--text-muted);font-weight:600;">${d.avgScore?.toFixed(1)||'—'}/5</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${shiftIco} Shift ${d.shift||'-'} • ${d.date||ts}</div>
+              <div style="margin-top:4px;font-size:14px;">${stars} <span style="font-size:12px;color:var(--text-muted);font-weight:600;">${d.avgScore?.toFixed(2)||'—'}/5</span></div>
             </div>
             <button onclick="deletePenilaian('${doc.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--danger);padding:4px;">🗑️</button>
           </div>
@@ -2455,6 +2545,9 @@ async function deletePenilaian(id) {
   await db.collection('evaluations').doc(id).delete();
   showToast('Penilaian dihapus.','success');
   loadAllPenilaian();
+  if (document.getElementById('pn-tab-beri').style.display === 'block') {
+    await loadAnalisForRating();
+  }
 }
 
 async function loadMyPenilaian() {
@@ -2493,20 +2586,20 @@ async function loadMyPenilaian() {
 
     const avg = totalCnt > 0 ? (totalSum / totalCnt) : 0;
     document.getElementById('pn-score-avg').textContent = avg.toFixed(2);
-    document.getElementById('pn-score-stars').textContent = renderStars(avg, true);
+    document.getElementById('pn-score-stars').textContent = renderStars(avg);
     document.getElementById('pn-score-count').textContent = `${totalCnt} penilaian diterima`;
 
-    // Category breakdown
+    // Category breakdown — 10 parameters
     document.getElementById('pn-category-bd').innerHTML = PN_KATEGORI.map(c => {
       const catAvg = catCnt[c.id] > 0 ? (catSum[c.id] / catCnt[c.id]) : 0;
       const pct = (catAvg / 5) * 100;
       return `
-        <div style="margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12.5px;font-weight:600;color:var(--text);">${c.ico} ${c.label}</span>
-            <span style="font-size:12px;font-weight:800;color:var(--primary);">${catAvg.toFixed(1)}/5</span>
+        <div style="margin-bottom:11px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="font-size:12px;font-weight:600;color:var(--text);">${c.ico} ${c.short}</span>
+            <span style="font-size:11.5px;font-weight:800;color:var(--primary);">${catAvg.toFixed(1)}/5</span>
           </div>
-          <div style="background:var(--bg);height:8px;border-radius:4px;overflow:hidden;">
+          <div style="background:var(--bg);height:7px;border-radius:4px;overflow:hidden;">
             <div style="height:100%;background:linear-gradient(90deg,#7C3AED,#A78BFA);width:${pct}%;border-radius:4px;transition:width .4s;"></div>
           </div>
         </div>`;
@@ -2517,13 +2610,14 @@ async function loadMyPenilaian() {
     listEl.innerHTML = '';
     all.forEach(d => {
       const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      const shiftIco = d.shift==='Pagi' ? '🌅' : '🌙';
       listEl.innerHTML += `
         <div style="background:var(--card);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-xs);margin-bottom:10px;border:1px solid var(--border);">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Periode ${d.period||'—'}</div>
-              <div style="font-size:18px;font-weight:800;color:var(--primary);margin-top:4px;">${renderStars(d.avgScore, true)}</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${d.avgScore?.toFixed(2)||'—'}/5 — ${ts}</div>
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">${shiftIco} Shift ${d.shift||'-'} • ${d.date||ts}</div>
+              <div style="font-size:18px;font-weight:800;color:var(--primary);margin-top:4px;">${renderStars(d.avgScore)}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${d.avgScore?.toFixed(2)||'—'}/5</div>
             </div>
           </div>
           ${d.notes ? `<div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12.5px;color:var(--text-mid);line-height:1.5;">${escapeHtml(d.notes)}</div>`: ''}
@@ -2534,16 +2628,62 @@ async function loadMyPenilaian() {
   }
 }
 
-function renderStars(score, withHalf = false) {
+function renderStars(score) {
   if (!score) return '☆☆☆☆☆';
-  const rounded = withHalf ? Math.round(score * 2) / 2 : Math.round(score);
+  const r = Math.round(score);
   let out = '';
-  for (let i = 1; i <= 5; i++) {
-    if (i <= rounded) out += '★';
-    else if (i - 0.5 === rounded) out += '⯨';
-    else out += '☆';
-  }
+  for (let i = 1; i <= 5; i++) out += (i <= r) ? '★' : '☆';
   return out;
+}
+
+// ============================================================
+// EXPORT PENILAIAN — Format Excel sesuai gambar
+// ============================================================
+async function exportPenilaian() {
+  showToast('Mengekspor penilaian…', 'warning');
+  try {
+    const snap = await db.collection('evaluations').orderBy('date','desc').orderBy('shift','asc').get();
+    if (snap.empty) { showToast('Belum ada data penilaian.', 'error'); return; }
+
+    const rows = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString('id-ID') : '—';
+      rows.push({
+        'Tanggal':       d.date || '—',
+        'Shift':         d.shift || '—',
+        'Nama Analis':   d.targetUserName || '—',
+        'Jam Masuk':     d.scores?.jam_masuk     ?? '',
+        'Jam Pulang':    d.scores?.jam_pulang    ?? '',
+        'Fokus Kerja':   d.scores?.fokus_kerja   ?? '',
+        'Kondisi Prima': d.scores?.kondisi_prima ?? '',
+        'Bersih-bersih': d.scores?.bersih_bersih ?? '',
+        '5S Seiri':      d.scores?.seiri         ?? '',
+        '5S Seiton':     d.scores?.seiton        ?? '',
+        '5S Seiso':      d.scores?.seiso         ?? '',
+        '5S Seiketsu':   d.scores?.seiketsu      ?? '',
+        '5S Shitsuke':   d.scores?.shitsuke      ?? '',
+        'Rata-rata':     d.avgScore?.toFixed(2)  || '—',
+        'Catatan':       d.notes || '',
+        'Penilai':       d.evaluatorName || '—',
+        'Waktu Input':   ts
+      });
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    // Set column widths
+    ws['!cols'] = [
+      {wch:12},{wch:8},{wch:25},{wch:10},{wch:10},{wch:12},{wch:13},{wch:13},
+      {wch:9},{wch:10},{wch:9},{wch:11},{wch:11},{wch:10},{wch:35},{wch:20},{wch:20}
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Penilaian');
+    const today = todayStr();
+    XLSX.writeFile(wb, `AWK_WBN_Penilaian_${today}.xlsx`);
+    showToast('File Excel berhasil diunduh! 📊', 'success');
+  } catch(e) {
+    showToast('Gagal export: '+e.message, 'error');
+  }
 }
 
 function initClean() {
