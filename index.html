@@ -1315,6 +1315,10 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
               <div class="export-btn-ico">🧹</div>
               <div><div class="export-btn-lbl">Log Kebersihan</div><div class="export-btn-sub">Catatan & foto kebersihan</div></div>
             </div>
+            <div class="export-btn-row" onclick="exportPenilaian()">
+              <div class="export-btn-ico">⭐</div>
+              <div><div class="export-btn-lbl">Penilaian Tim</div><div class="export-btn-sub">10 parameter per shift</div></div>
+            </div>
             <div class="export-btn-row" onclick="exportData('all')" style="background:var(--primary-light);border-color:var(--primary);">
               <div class="export-btn-ico">📦</div>
               <div>
@@ -1998,7 +2002,7 @@ function renderJobStep() {
 
 function buildPekerjaanList() {
   const opts = jobState.komoditi === 'Mineral'
-    ? [{ico:'⚖️',lbl:'Timbangan'},{ico:'🔥',lbl:'Bakaran'},{ico:'🖥️',lbl:'Operator'}]
+    ? [{ico:'⚖️',lbl:'Timbangan'},{ico:'🔥',lbl:'Bakaran'},{ico:'🖥️',lbl:'Operator'},{ico:'♨️',lbl:'LOI'}]
     : [{ico:'💧',lbl:'TM (Total Moisture)'},{ico:'📊',lbl:'Proximate'},{ico:'🔬',lbl:'Instrumen (TS & GCV)'}];
   document.getElementById('js4-sub').textContent = `Pekerjaan untuk komoditi ${jobState.komoditi}`;
   document.getElementById('pekerjaan-list').innerHTML = opts.map(o => `
@@ -2225,7 +2229,8 @@ async function loadHandovers() {
   try {
     let q;
     if (handoverTab === 'today') {
-      q = db.collection('handovers').where('date','==',todayStr()).orderBy('timestamp','desc');
+      // Hindari composite index: ambil filter saja, sort client-side
+      q = db.collection('handovers').where('date','==',todayStr());
     } else {
       q = db.collection('handovers').orderBy('timestamp','desc').limit(30);
     }
@@ -2237,9 +2242,18 @@ async function loadHandovers() {
       </div>`;
       return;
     }
+    // Client-side sort untuk tab 'today'
+    const docs = [];
+    snap.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
+    if (handoverTab === 'today') {
+      docs.sort((a,b) => {
+        const ta = a.data.timestamp?.toMillis ? a.data.timestamp.toMillis() : 0;
+        const tb = b.data.timestamp?.toMillis ? b.data.timestamp.toMillis() : 0;
+        return tb - ta;
+      });
+    }
     list.innerHTML = '';
-    snap.forEach(doc => {
-      const d  = doc.data();
+    docs.forEach(({ id, data: d }) => {
       const ts = d.timestamp?.toDate ? d.timestamp.toDate() : null;
       const time = ts ? formatTime(ts) : '—';
       const dt   = ts ? ts.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : (d.date||'—');
@@ -2263,7 +2277,7 @@ async function loadHandovers() {
           <div style="padding:14px 16px;font-size:13.5px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${escapeHtml(d.notes||'')}</div>
           <div style="padding:0 16px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);">
             <span>✍️ ${escapeHtml(d.authorName||'—')} • ${time}</span>
-            ${isAdmin ? `<button onclick="deleteHandover('${doc.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--danger);padding:4px 8px;">🗑️</button>` : ''}
+            ${isAdmin ? `<button onclick="deleteHandover('${id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--danger);padding:4px 8px;">🗑️</button>` : ''}
           </div>
         </div>`;
     });
@@ -2552,9 +2566,9 @@ async function deletePenilaian(id) {
 
 async function loadMyPenilaian() {
   try {
+    // Hindari composite index: ambil filter saja, sort client-side
     const snap = await db.collection('evaluations')
-      .where('targetUserId','==',currentUser.uid)
-      .orderBy('timestamp','desc').get();
+      .where('targetUserId','==',currentUser.uid).get();
 
     if (snap.empty) {
       document.getElementById('pn-score-avg').textContent = '—';
@@ -2582,6 +2596,13 @@ async function loadMyPenilaian() {
           catCnt[c.id]++;
         }
       });
+    });
+
+    // Sort terbaru dulu (client-side, tidak butuh index)
+    all.sort((a,b) => {
+      const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+      const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+      return tb - ta;
     });
 
     const avg = totalCnt > 0 ? (totalSum / totalCnt) : 0;
@@ -2642,11 +2663,24 @@ function renderStars(score) {
 async function exportPenilaian() {
   showToast('Mengekspor penilaian…', 'warning');
   try {
-    const snap = await db.collection('evaluations').orderBy('date','desc').orderBy('shift','asc').get();
+    // Ambil semua, sort client-side untuk hindari composite index
+    const snap = await db.collection('evaluations').get();
     if (snap.empty) { showToast('Belum ada data penilaian.', 'error'); return; }
 
+    // Sort: tanggal desc, shift asc (Pagi sebelum Malam)
+    const allDocs = [];
+    snap.forEach(d => allDocs.push(d));
+    allDocs.sort((a,b) => {
+      const da = a.data().date || '';
+      const db_ = b.data().date || '';
+      if (da !== db_) return db_.localeCompare(da);
+      const sa = a.data().shift || '';
+      const sb = b.data().shift || '';
+      return sa.localeCompare(sb);
+    });
+
     const rows = [];
-    snap.forEach(doc => {
+    allDocs.forEach(doc => {
       const d = doc.data();
       const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString('id-ID') : '—';
       rows.push({
@@ -2694,7 +2728,7 @@ function initClean() {
   document.getElementById('clean-prev-box').style.display = 'none';
   updateKirimBtn();
 
-  const all = ['Timbangan','Bakaran','Operator','TM','Proximate','Instrumen'];
+  const all = ['Timbangan','Bakaran','Operator','LOI','TM','Proximate','Instrumen'];
   document.getElementById('clean-chips').innerHTML = all.map(j =>
     `<div class="clean-chip" onclick="pickCleanJob('${j}',this)">${j}</div>`).join('');
 
