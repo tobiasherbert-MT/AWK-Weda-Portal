@@ -1072,7 +1072,7 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="cr-lbl">Basri</div>
             <div class="cr-check"></div>
           </div>
-          <div class="choice-row" onclick="pickJob('pic','Ivan',this)">
+          <div class="choice-row" onclick="pickJob('pic','IVan',this)">
             <div class="cr-ico">👨‍🔬</div>
             <div class="cr-lbl">Ivan</div>
             <div class="cr-check"></div>
@@ -1121,7 +1121,25 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
         <div class="header-sub">Catat penggunaan & pemasukan</div>
       </div>
     </div>
-    <div class="tab-bar">
+
+    <!-- Stok Terkini Panel (selalu tampil) -->
+    <div style="margin:12px 16px 0;background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow-sm);border:1px solid var(--border);overflow:hidden;">
+      <div onclick="toggleStokPanel()" style="padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;background:linear-gradient(135deg,#004FBF,#2C5FB5);">
+        <span style="font-size:20px;">📦</span>
+        <div style="flex:1;">
+          <div style="font-size:13.5px;font-weight:800;color:#fff;">Stok Terkini</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);">Tap untuk lihat semua stok bahan kimia</div>
+        </div>
+        <span id="stok-arrow" style="color:#fff;font-size:16px;transition:transform .3s;">▼</span>
+      </div>
+      <div id="stok-panel" style="display:none;">
+        <div id="stok-panel-body" style="padding:12px 16px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar" style="margin-top:12px;">
       <div class="tab-item active" onclick="switchChemTab('pakai',this)">📤 Penggunaan</div>
       <div class="tab-item" onclick="switchChemTab('masuk',this)">📥 Pemasukan</div>
       <div class="tab-item" onclick="switchChemTab('log',this)">📋 Log Hari Ini</div>
@@ -1131,9 +1149,16 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
       <div id="ct-pakai">
         <div class="form-section">
           <div class="form-section-title">📤 Catat Penggunaan</div>
+          <!-- Stock preview untuk bahan yang dipilih -->
+          <div id="cp-stock-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:14px;border:1.5px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--text-muted);font-weight:600;">STOK SAAT INI</span>
+              <span id="cp-stock-val" style="font-size:16px;font-weight:800;color:var(--primary);">—</span>
+            </div>
+          </div>
           <div class="form-row">
             <label class="form-lbl">Bahan Kimia</label>
-            <select class="input-f" id="cp-name" onchange="syncUnit('cp-name','cp-unit')"></select>
+            <select class="input-f" id="cp-name" onchange="syncUnit('cp-name','cp-unit');showStockPreview('cp')"></select>
           </div>
           <div class="form-row">
             <label class="form-lbl">Jumlah</label>
@@ -1153,9 +1178,15 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
       <div id="ct-masuk" style="display:none">
         <div class="form-section">
           <div class="form-section-title">📥 Catat Pemasukan</div>
+          <div id="cm-stock-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:14px;border:1.5px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--text-muted);font-weight:600;">STOK SAAT INI</span>
+              <span id="cm-stock-val" style="font-size:16px;font-weight:800;color:var(--primary);">—</span>
+            </div>
+          </div>
           <div class="form-row">
             <label class="form-lbl">Bahan Kimia</label>
-            <select class="input-f" id="cm-name" onchange="syncUnit('cm-name','cm-unit')"></select>
+            <select class="input-f" id="cm-name" onchange="syncUnit('cm-name','cm-unit');showStockPreview('cm')"></select>
           </div>
           <div class="form-row">
             <label class="form-lbl">Jumlah</label>
@@ -1173,8 +1204,8 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
       </div>
       <!-- Log -->
       <div id="ct-log" style="display:none">
-        <div style="padding:16px 0 0 0;" class="section-label" style="padding-left:16px;">Log Bahan Kimia Hari Ini</div>
-        <div class="chem-log-wrap" id="chem-log-list" style="padding-top:12px;">
+        <div style="padding:16px 16px 8px;" class="section-label">Log Bahan Kimia Hari Ini</div>
+        <div class="chem-log-wrap" id="chem-log-list" style="padding:0 16px 16px;">
           <div class="empty-box">
             <div class="empty-ico">🧪</div>
             <div class="empty-txt">Belum ada log kimia hari ini</div>
@@ -1624,7 +1655,7 @@ const FIREBASE_CONFIG = {
    ============================================================ */
 const LAB_LAT      = 0.474453;   // ← Latitude lab (contoh Weda Bay)
 const LAB_LNG      = 128.001445;  // ← Longitude lab
-const MAX_RADIUS_M = 200;        // Radius absen maksimum (meter)
+const MAX_RADIUS_M = 200;       // Radius absen maksimum (meter)
 
 /* ============================================================
    FIRESTORE SECURITY RULES (paste ke Firebase Console → Firestore → Rules)
@@ -2061,11 +2092,13 @@ async function initChemical() {
   chemicals = [];
   snap.forEach(d => chemicals.push({ id: d.id, ...d.data() }));
   buildChemSelects();
+  // Auto show stock preview for first item
+  setTimeout(() => { showStockPreview('cp'); showStockPreview('cm'); }, 200);
 }
 
 function buildChemSelects() {
   const opts = chemicals.length
-    ? chemicals.map(c => `<option value="${c.id}" data-unit="${c.unit}">${c.name}</option>`).join('')
+    ? chemicals.map(c => `<option value="${c.id}" data-unit="${c.unit}" data-stock="${c.currentStock??0}">${c.name}</option>`).join('')
     : '<option value="">— Belum ada bahan kimia (tambah di Admin) —</option>';
   document.getElementById('cp-name').innerHTML = opts;
   document.getElementById('cm-name').innerHTML = opts;
@@ -2081,17 +2114,117 @@ function syncUnit(selId, unitId) {
   document.getElementById(unitId).value = opt?.dataset.unit || '';
 }
 
+function showStockPreview(pfx) {
+  const sel = document.getElementById(pfx + '-name');
+  if (!sel || !sel.selectedOptions[0]) return;
+  const opt   = sel.selectedOptions[0];
+  const stock = parseFloat(opt.dataset.stock) || 0;
+  const unit  = opt.dataset.unit || '';
+  const chemId = sel.value;
+  const chem   = chemicals.find(c => c.id === chemId);
+  const realStock = chem ? (chem.currentStock ?? 0) : 0;
+  const preview = document.getElementById(pfx + '-stock-preview');
+  const valEl   = document.getElementById(pfx + '-stock-val');
+  if (!preview || !valEl) return;
+  preview.style.display = 'block';
+  const color = realStock <= 0 ? 'var(--danger)' : realStock < 100 ? 'var(--warning)' : 'var(--success)';
+  const status = realStock <= 0 ? '⚠️ HABIS' : realStock < 100 ? '⚠️ Hampir habis' : '✅ Cukup';
+  valEl.style.color = color;
+  valEl.innerHTML = `<span style="font-size:18px;font-weight:800;">${realStock.toLocaleString('id-ID')}</span> <span style="font-size:12px;font-weight:600;">${unit}</span> <span style="font-size:10px;color:${color};margin-left:4px;">${status}</span>`;
+}
+
 function switchChemTab(tab, el) {
   ['pakai','masuk','log'].forEach(t => {
     document.getElementById('ct-' + t).style.display = t===tab ? 'block' : 'none';
   });
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#screen-chemical .tab-item').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   if (tab === 'log') loadChemLog();
 }
 
+// ── STOK PANEL ──────────────────────────────────────────────
+let stokPanelOpen = false;
+function toggleStokPanel() {
+  stokPanelOpen = !stokPanelOpen;
+  const panel = document.getElementById('stok-panel');
+  const arrow = document.getElementById('stok-arrow');
+  panel.style.display = stokPanelOpen ? 'block' : 'none';
+  arrow.style.transform = stokPanelOpen ? 'rotate(180deg)' : 'rotate(0)';
+  if (stokPanelOpen) renderStokPanel();
+}
+
+async function renderStokPanel() {
+  const body = document.getElementById('stok-panel-body');
+  body.innerHTML = '<div class="spinner"></div>';
+
+  // Reload chemicals for fresh stock data
+  try {
+    const snap = await db.collection('chemicals').orderBy('name').get();
+    chemicals = [];
+    snap.forEach(d => chemicals.push({ id: d.id, ...d.data() }));
+    buildChemSelects();
+  } catch(e) { /* use cached */ }
+
+  // Today's usage totals per chemical
+  let usageToday = {};
+  let pemasukToday = {};
+  try {
+    const usnap = await db.collection('chemicalUsage').where('date','==',todayStr()).get();
+    usnap.forEach(d => {
+      const data = d.data();
+      if (data.type === 'pakai') {
+        usageToday[data.chemicalId] = (usageToday[data.chemicalId] || 0) + (data.qty || 0);
+      } else {
+        pemasukToday[data.chemicalId] = (pemasukToday[data.chemicalId] || 0) + (data.qty || 0);
+      }
+    });
+  } catch(e) { /* ignore */ }
+
+  if (chemicals.length === 0) {
+    body.innerHTML = '<div class="empty-txt" style="text-align:center;padding:12px;font-size:12px;">Belum ada bahan kimia</div>';
+    return;
+  }
+
+  body.innerHTML = chemicals.map(c => {
+    const stock  = c.currentStock ?? 0;
+    const used   = usageToday[c.id] || 0;
+    const masuk  = pemasukToday[c.id] || 0;
+    const pct    = Math.min(100, stock > 0 ? Math.min(100, (stock / Math.max(stock + used, 1)) * 100) : 0);
+    const isHabis = stock <= 0;
+    const isLow   = !isHabis && stock < 100;
+    const barColor = isHabis ? 'var(--danger)' : isLow ? 'var(--warning)' : 'var(--success)';
+    const statusBg = isHabis ? '#FEF2F2' : isLow ? '#FFFBEB' : '#F0FDF4';
+    const statusColor = isHabis ? '#991B1B' : isLow ? '#92400E' : '#14532D';
+    const statusText = isHabis ? '⚠️ HABIS' : isLow ? '⚠️ Hampir Habis' : '✅ Cukup';
+
+    return `
+    <div style="margin-bottom:12px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;">
+          <div style="font-size:13.5px;font-weight:800;color:var(--text);">${escapeHtml(c.name)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Satuan: ${c.unit||'—'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:800;color:var(--primary);">${stock.toLocaleString('id-ID')}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${c.unit||''}</div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="background:var(--border);height:7px;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+        <div style="height:100%;background:${barColor};width:${pct}%;border-radius:4px;transition:width .4s;"></div>
+      </div>
+      <!-- Stats row -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:${statusBg};color:${statusColor};padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:700;">${statusText}</span>
+        ${used > 0 ? `<span style="background:#FEF3F2;color:#991B1B;padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:600;">📤 Pakai hari ini: ${used} ${c.unit||''}</span>` : ''}
+        ${masuk > 0 ? `<span style="background:#F0FDF4;color:#14532D;padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:600;">📥 Masuk hari ini: +${masuk} ${c.unit||''}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function submitChem(type) {
-  const pfx = type === 'pakai' ? 'cp' : 'cm';
+  const pfx   = type === 'pakai' ? 'cp' : 'cm';
   const selEl  = document.getElementById(`${pfx}-name`);
   const qtyEl  = document.getElementById(`${pfx}-qty`);
   const unitEl = document.getElementById(`${pfx}-unit`);
@@ -2100,21 +2233,47 @@ async function submitChem(type) {
   const qty    = parseFloat(qtyEl.value);
   const chem   = chemicals.find(c => c.id === chemId);
   if (!chemId || isNaN(qty) || qty <= 0) { showToast('Isi bahan kimia dan jumlah dengan benar.','error'); return; }
+
+  // Cek stok cukup kalau pakai
+  if (type === 'pakai' && chem && (chem.currentStock ?? 0) < qty) {
+    showToast(`Stok ${chem.name} tidak cukup! Sisa: ${chem.currentStock ?? 0} ${chem.unit}`, 'error');
+    return;
+  }
+
   try {
     const ts = firebase.firestore.FieldValue.serverTimestamp();
+    // Log usage
     await db.collection('chemicalUsage').add({
       userId: currentUser.uid, userName: currentUser._name,
       type, chemicalId: chemId, chemicalName: chem?.name || chemId,
       qty, unit: unitEl.value, notes: noteEl.value.trim(),
       timestamp: ts, date: todayStr()
     });
+
+    // Update currentStock di chemicals
+    const newStock = (chem?.currentStock ?? 0) + (type === 'masuk' ? qty : -qty);
+    await db.collection('chemicals').doc(chemId).update({
+      currentStock: Math.max(0, newStock)
+    });
+
+    // Update local cache
+    if (chem) {
+      chem.currentStock = Math.max(0, newStock);
+      // Update data attribute di option
+      const opts = document.querySelectorAll(`#${pfx}-name option, #${pfx==='cp'?'cm':'cp'}-name option`);
+      opts.forEach(o => { if (o.value === chemId) o.dataset.stock = Math.max(0, newStock); });
+    }
+
     await logActivity(
       `🧪 ${type==='pakai'?'Penggunaan':'Pemasukan'}: ${chem?.name}`,
-      `${qty} ${unitEl.value}${noteEl.value?' • '+noteEl.value:''}`,
+      `${qty} ${unitEl.value} | Sisa stok: ${Math.max(0,newStock)} ${unitEl.value}`,
       '🧪', 'ico-amber'
     );
+
     qtyEl.value = ''; noteEl.value = '';
-    showToast('Data kimia tersimpan! ✅','success');
+    showStockPreview(pfx);
+    if (stokPanelOpen) renderStokPanel();
+    showToast(`${type==='pakai'?'Penggunaan':'Pemasukan'} tersimpan! Sisa stok: ${Math.max(0,newStock)} ${unitEl.value} ✅`, 'success');
     loadChemLog();
   } catch(e) { showToast('Gagal: '+e.message,'error'); }
 }
@@ -2122,26 +2281,40 @@ async function submitChem(type) {
 async function loadChemLog() {
   const list = document.getElementById('chem-log-list');
   list.innerHTML = '<div class="spinner"></div>';
-  const snap = await db.collection('chemicalUsage')
-    .where('date','==',todayStr())
-    .orderBy('timestamp','desc').get();
-  if (snap.empty) {
-    list.innerHTML = '<div class="empty-box"><div class="empty-ico">🧪</div><div class="empty-txt">Belum ada log kimia hari ini</div></div>';
-    return;
+  try {
+    // Client-side sort — hindari composite index
+    const snap = await db.collection('chemicalUsage').where('date','==',todayStr()).get();
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty-box"><div class="empty-ico">🧪</div><div class="empty-txt">Belum ada log kimia hari ini</div></div>';
+      return;
+    }
+    const docs = [];
+    snap.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
+    // Sort terbaru dulu (client-side)
+    docs.sort((a,b) => {
+      const ta = a.data.timestamp?.toMillis ? a.data.timestamp.toMillis() : 0;
+      const tb = b.data.timestamp?.toMillis ? b.data.timestamp.toMillis() : 0;
+      return tb - ta;
+    });
+    list.innerHTML = '';
+    docs.forEach(({ data: d }) => {
+      const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
+      const isPakai = d.type === 'pakai';
+      list.innerHTML += `
+        <div class="log-card" style="margin-bottom:10px;">
+          <div style="width:38px;height:38px;border-radius:10px;background:${isPakai?'#FEF2F2':'#F0FDF4'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${isPakai?'📤':'📥'}</div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="log-name">${escapeHtml(d.chemicalName)}</span>
+              <span style="background:${isPakai?'#FEF2F2':'#F0FDF4'};color:${isPakai?'#991B1B':'#14532D'};padding:1px 7px;border-radius:5px;font-size:9.5px;font-weight:700;">${isPakai?'PAKAI':'MASUK'}</span>
+            </div>
+            <div class="log-meta">${d.qty} ${d.unit} • ${escapeHtml(d.userName||'—')} • ${ts}${d.notes?' • '+escapeHtml(d.notes):''}</div>
+          </div>
+        </div>`;
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
   }
-  list.innerHTML = '';
-  snap.forEach(doc => {
-    const d = doc.data();
-    const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
-    list.innerHTML += `
-      <div class="log-card">
-        <span class="log-badge ${d.type==='pakai'?'badge-pakai':'badge-masuk'}">${d.type==='pakai'?'PAKAI':'MASUK'}</span>
-        <div style="flex:1;">
-          <div class="log-name">${d.chemicalName}</div>
-          <div class="log-meta">${d.qty} ${d.unit} • ${d.userName} • ${ts}${d.notes?' • '+d.notes:''}</div>
-        </div>
-      </div>`;
-  });
 }
 
 // ============================================================
