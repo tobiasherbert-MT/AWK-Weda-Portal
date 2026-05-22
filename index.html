@@ -768,6 +768,229 @@ select.input-f {
 }
 .fade-in { animation: fadeUp .4s ease both; }
 canvas#cap-canvas, canvas#clean-canvas { display: none; }
+
+/* =====================================================
+   DESKTOP LAYOUT (min-width: 768px)
+   ===================================================== */
+@media (min-width: 768px) {
+
+  /* Reset body centering */
+  body {
+    background: #0F1923 !important;
+    display: block !important;
+    align-items: unset !important;
+    justify-content: unset !important;
+  }
+
+  /* Full-width app */
+  #app {
+    max-width: 100% !important;
+    margin: 0 !important;
+    margin-left: 240px !important;
+    height: 100vh;
+    overflow: hidden;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: var(--bg);
+  }
+
+  /* ── SIDEBAR ── */
+  #bottom-nav {
+    position: fixed !important;
+    left: 0 !important; top: 0 !important;
+    transform: none !important;
+    width: 240px !important;
+    max-width: 240px !important;
+    height: 100vh !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding: 0 !important;
+    border-top: none !important;
+    border-right: 1px solid rgba(255,255,255,.07) !important;
+    background: #0D1B2E !important;
+    overflow-y: auto;
+    display: flex !important;
+  }
+
+  /* Show desktop-only elements */
+  #sidebar-brand, #sidebar-user { display: block !important; }
+
+  /* Nav items → sidebar rows */
+  .nav-item {
+    flex: none !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+    gap: 12px !important;
+    margin: 2px 8px !important;
+    border-radius: 10px !important;
+    transition: background .15s !important;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06) !important; }
+  .nav-item.active { background: rgba(255,255,255,.1) !important; }
+  .nav-item.active .nav-icon { background: var(--primary) !important; transform: none !important; }
+  .nav-item.active .nav-label { color: #fff !important; font-weight: 700 !important; }
+
+  .nav-icon {
+    width: 34px !important; height: 34px !important;
+    border-radius: 9px !important;
+    font-size: 17px !important;
+    flex-shrink: 0;
+    background: rgba(255,255,255,.06);
+  }
+  .nav-label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,.6) !important;
+    letter-spacing: -.1px !important;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .screen-body {
+    padding-bottom: 24px !important;
+  }
+
+  /* Content max-width with centering */
+  .screen-body > *,
+  .form-section,
+  .tab-bar {
+    max-width: 900px;
+  }
+
+  /* Page header wider */
+  .page-header {
+    max-width: 100%;
+    padding: 0 32px;
+  }
+
+  /* ── DASHBOARD ── */
+  .dash-stats {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .dash-menu {
+    padding: 0 24px 24px !important;
+  }
+
+  .menu-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .menu-card { padding: 20px 16px !important; }
+
+  /* Dashboard featured cards */
+  #dash-hero {
+    padding: 28px 32px !important;
+  }
+
+  /* ── FORMS ── */
+  .form-section {
+    margin: 20px 24px !important;
+    padding: 28px !important;
+    max-width: 860px !important;
+  }
+
+  .input-f, select.input-f, textarea.input-f {
+    font-size: 14px !important;
+  }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
+    margin: 0 !important;
+    padding: 0 24px !important;
+    max-width: 100% !important;
+  }
+
+  /* ── ADMIN ── */
+  .admin-tabs {
+    padding: 0 24px !important;
+  }
+
+  .report-kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* ── LOG CARDS ── */
+  .log-card {
+    margin: 0 24px 10px !important;
+  }
+
+  /* Penilaian analis view */
+  #pn-analis-view > div {
+    max-width: 900px;
+  }
+
+  /* Stok panel */
+  #stok-panel-body {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Handover list */
+  #ho-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    align-items: start !important;
+  }
+
+  /* Toast position for desktop */
+  #toast {
+    left: calc(240px + 50%) !important;
+  }
+
+  /* Activity feed 2-col */
+  #act-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* ── CLEAN SCREEN ── */
+  #clean-cam-box video, #clean-prev-box img {
+    max-height: 55vh !important;
+    aspect-ratio: 4/3 !important;
+  }
+
+  /* ── ABSEN SCREEN ── */
+  #screen-absen .screen-body > * {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── PENILAIAN ANALIS CARDS ── */
+  #pn-analis-cards {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    padding: 0 !important;
+  }
+}
+
+/* Even wider desktop */
+@media (min-width: 1200px) {
+  #app { margin-left: 240px !important; }
+
+  .menu-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
+  .report-kpi-grid { grid-template-columns: repeat(5, 1fr) !important; }
+
+  #ho-list { grid-template-columns: 1fr 1fr 1fr !important; }
+
+  #stok-panel-body { grid-template-columns: 1fr 1fr 1fr !important; }
+}
 </style>
 </head>
 <body>
@@ -1072,7 +1295,7 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
             <div class="cr-lbl">Basri</div>
             <div class="cr-check"></div>
           </div>
-          <div class="choice-row" onclick="pickJob('pic','IVan',this)">
+          <div class="choice-row" onclick="pickJob('pic','Ivan',this)">
             <div class="cr-ico">👨‍🔬</div>
             <div class="cr-lbl">Ivan</div>
             <div class="cr-check"></div>
@@ -1569,6 +1792,22 @@ Contoh:
 
   <!-- ===== BOTTOM NAV ===== -->
   <nav id="bottom-nav">
+    <!-- Sidebar brand (desktop only) -->
+    <div id="sidebar-brand" style="display:none;">
+      <div style="padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#2C5FB5,#3B82F6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚗️</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;">Anindya Weda-Bay</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:500;">WBN Laboratory Portal</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:8px 8px 4px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.35);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;">Menu</div>
+      </div>
+    </div>
+
     <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
       <div class="nav-icon">🏠</div>
       <div class="nav-label">Beranda</div>
@@ -1592,6 +1831,18 @@ Contoh:
     <div class="nav-item" id="nav-admin" onclick="navigate('admin')" style="display:none;">
       <div class="nav-icon">⚙️</div>
       <div class="nav-label">Admin</div>
+    </div>
+
+    <!-- Sidebar user info (desktop only) -->
+    <div id="sidebar-user" style="display:none;margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="sidebar-avatar" style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2C5FB5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">?</div>
+        <div style="flex:1;min-width:0;">
+          <div id="sidebar-name" style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+          <div id="sidebar-role" style="font-size:10px;color:rgba(255,255,255,.45);">—</div>
+        </div>
+        <div onclick="auth.signOut()" style="cursor:pointer;font-size:16px;opacity:.5;" title="Logout">⏻</div>
+      </div>
     </div>
   </nav>
 
@@ -1834,6 +2085,14 @@ async function loadDashboard() {
   document.getElementById('dash-name').textContent = currentUser._name || '—';
   document.getElementById('dash-date').textContent = formatDate(new Date());
 
+  // Update sidebar user info (desktop)
+  const nameEl = document.getElementById('sidebar-name');
+  const roleEl = document.getElementById('sidebar-role');
+  const avatarEl = document.getElementById('sidebar-avatar');
+  if (nameEl) nameEl.textContent = currentUser._name || '—';
+  if (roleEl) roleEl.textContent = currentRole === 'admin' ? '🔑 Lab PIC / Admin' : '👤 Analis';
+  if (avatarEl) avatarEl.textContent = (currentUser._name || '?')[0].toUpperCase();
+
   // Update Penilaian card based on role
   const isAdmin = currentRole === 'admin';
   const pnTitle = document.getElementById('penilaian-card-title');
@@ -1842,45 +2101,90 @@ async function loadDashboard() {
   if (pnSub)   pnSub.textContent   = isAdmin ? 'Beri nilai performa analis' : 'Lihat evaluasi performa Anda';
 
   const today = todayStr();
-  const m1 = new Date(); m1.setDate(1);
-  const mStr = m1.toISOString().slice(0,10);
+  const m1    = new Date(); m1.setDate(1);
+  const mStr  = m1.toISOString().slice(0,10);
+  const uid   = currentUser.uid;
 
-  // Stats
-  db.collection('attendance').where('userId','==',currentUser.uid).where('date','>=',mStr).get()
-    .then(s => document.getElementById('stat-absen').textContent = s.size);
-  db.collection('jobLogs').where('userId','==',currentUser.uid).where('date','==',today).get()
-    .then(s => document.getElementById('stat-job').textContent = s.size);
-  db.collection('chemicalUsage').where('userId','==',currentUser.uid).where('date','==',today).get()
-    .then(s => document.getElementById('stat-chem').textContent = s.size);
+  // ── STATS: query hanya 1 field (tidak butuh composite index) ──
+  // Absen bulan ini
+  try {
+    const s = await db.collection('attendance').where('userId','==',uid).get();
+    const cnt = s.docs.filter(d => d.data().date >= mStr).length;
+    document.getElementById('stat-absen').textContent = cnt;
+  } catch(e) { document.getElementById('stat-absen').textContent = '—'; }
 
-  // Absen status
-  db.collection('attendance').where('userId','==',currentUser.uid).where('date','==',today).get()
-    .then(s => {
-      const chip = document.getElementById('absen-status-chip');
-      if (s.size > 0) {
-        chip.className = 'absen-chip ok';
-        chip.innerHTML = `<div class="absen-chip-dot"></div>
-          <div><div class="absen-chip-text">Sudah absen hari ini ✓</div>
-          <div class="absen-chip-sub">${s.size} catatan absensi</div></div>`;
-      } else {
-        chip.className = 'absen-chip warn';
-        chip.innerHTML = `<div class="absen-chip-dot"></div>
-          <div><div class="absen-chip-text">Belum absen hari ini</div>
-          <div class="absen-chip-sub">Segera lakukan absensi</div></div>`;
-      }
+  // Log kerja hari ini
+  try {
+    const s = await db.collection('jobLogs').where('userId','==',uid).get();
+    const cnt = s.docs.filter(d => d.data().date === today).length;
+    document.getElementById('stat-job').textContent = cnt;
+  } catch(e) { document.getElementById('stat-job').textContent = '—'; }
+
+  // Log kimia hari ini
+  try {
+    const s = await db.collection('chemicalUsage').where('userId','==',uid).get();
+    const cnt = s.docs.filter(d => d.data().date === today).length;
+    document.getElementById('stat-chem').textContent = cnt;
+  } catch(e) { document.getElementById('stat-chem').textContent = '—'; }
+
+  // ── ABSEN STATUS: query hanya userId, filter date client-side ──
+  try {
+    const s    = await db.collection('attendance').where('userId','==',uid).get();
+    const docs = s.docs.filter(d => d.data().date === today);
+    const chip = document.getElementById('absen-status-chip');
+    if (docs.length > 0) {
+      chip.className = 'absen-chip ok';
+      chip.innerHTML = `<div class="absen-chip-dot"></div>
+        <div><div class="absen-chip-text">Sudah absen hari ini ✓</div>
+        <div class="absen-chip-sub">${docs.length} catatan absensi</div></div>`;
+    } else {
+      chip.className = 'absen-chip warn';
+      chip.innerHTML = `<div class="absen-chip-dot"></div>
+        <div><div class="absen-chip-text">Belum absen hari ini</div>
+        <div class="absen-chip-sub">Segera lakukan absensi</div></div>`;
+    }
+  } catch(e) { /* biarkan default warn */ }
+
+  // ── RECENT ACTIVITY: query 1 field + orderBy 1 field (tidak butuh composite) ──
+  try {
+    const snap = await db.collection('activityFeed')
+      .where('userId','==',uid).orderBy('timestamp','desc').limit(8).get();
+    const list = document.getElementById('act-list');
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty-box"><div class="empty-ico">📭</div><div class="empty-txt">Belum ada aktivitas</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(doc => {
+      const d = doc.data();
+      list.innerHTML += `
+        <div class="act-item">
+          <div class="act-ico ${d.icoClass||'ico-blue'}">${d.icon||'📌'}</div>
+          <div class="act-body">
+            <div class="act-title">${d.title}</div>
+            <div class="act-sub">${d.sub||''}</div>
+          </div>
+          <div class="act-time">${timeAgo(d.timestamp?.toDate())}</div>
+        </div>`;
     });
-
-  // Recent activity
-  db.collection('activityFeed').where('userId','==',currentUser.uid)
-    .orderBy('timestamp','desc').limit(8).get()
-    .then(snap => {
+  } catch(e) {
+    // Activity feed butuh index userId+timestamp — fallback: query tanpa orderBy
+    try {
+      const snap2 = await db.collection('activityFeed').where('userId','==',uid).get();
+      const docs2 = [];
+      snap2.forEach(doc => docs2.push(doc));
+      docs2.sort((a,b) => {
+        const ta = a.data().timestamp?.toMillis ? a.data().timestamp.toMillis() : 0;
+        const tb = b.data().timestamp?.toMillis ? b.data().timestamp.toMillis() : 0;
+        return tb - ta;
+      });
       const list = document.getElementById('act-list');
-      if (snap.empty) {
-        list.innerHTML = '<div class="empty-box"><div class="empty-ico">📭</div><div class="empty-txt">Belum ada aktivitas hari ini</div></div>';
+      if (docs2.length === 0) {
+        list.innerHTML = '<div class="empty-box"><div class="empty-ico">📭</div><div class="empty-txt">Belum ada aktivitas</div></div>';
         return;
       }
       list.innerHTML = '';
-      snap.forEach(doc => {
+      docs2.slice(0,8).forEach(doc => {
         const d = doc.data();
         list.innerHTML += `
           <div class="act-item">
@@ -1892,7 +2196,8 @@ async function loadDashboard() {
             <div class="act-time">${timeAgo(d.timestamp?.toDate())}</div>
           </div>`;
       });
-    });
+    } catch(e2) { /* silent */ }
+  }
 }
 
 // ============================================================
@@ -2240,9 +2545,11 @@ async function submitChem(type) {
     return;
   }
 
+  const newStock = (chem?.currentStock ?? 0) + (type === 'masuk' ? qty : -qty);
+
   try {
     const ts = firebase.firestore.FieldValue.serverTimestamp();
-    // Log usage
+    // ① Log usage — semua user bisa (chemicalUsage: isLoggedIn)
     await db.collection('chemicalUsage').add({
       userId: currentUser.uid, userName: currentUser._name,
       type, chemicalId: chemId, chemicalName: chem?.name || chemId,
@@ -2250,32 +2557,35 @@ async function submitChem(type) {
       timestamp: ts, date: todayStr()
     });
 
-    // Update currentStock di chemicals
-    const newStock = (chem?.currentStock ?? 0) + (type === 'masuk' ? qty : -qty);
-    await db.collection('chemicals').doc(chemId).update({
-      currentStock: Math.max(0, newStock)
-    });
-
-    // Update local cache
-    if (chem) {
-      chem.currentStock = Math.max(0, newStock);
-      // Update data attribute di option
-      const opts = document.querySelectorAll(`#${pfx}-name option, #${pfx==='cp'?'cm':'cp'}-name option`);
-      opts.forEach(o => { if (o.value === chemId) o.dataset.stock = Math.max(0, newStock); });
+    // ② Update currentStock — coba dulu, kalau gagal (analis tidak punya izin) tetap lanjut
+    try {
+      await db.collection('chemicals').doc(chemId).update({
+        currentStock: Math.max(0, newStock)
+      });
+      // Update local cache
+      if (chem) chem.currentStock = Math.max(0, newStock);
+    } catch(permErr) {
+      // Analis tidak punya izin update chemicals — update lokal saja agar UI tetap benar
+      if (chem) chem.currentStock = Math.max(0, newStock);
     }
+
+    // Update option dataset
+    document.querySelectorAll(`#cp-name option, #cm-name option`).forEach(o => {
+      if (o.value === chemId) o.dataset.stock = Math.max(0, newStock);
+    });
 
     await logActivity(
       `🧪 ${type==='pakai'?'Penggunaan':'Pemasukan'}: ${chem?.name}`,
-      `${qty} ${unitEl.value} | Sisa stok: ${Math.max(0,newStock)} ${unitEl.value}`,
+      `${qty} ${unitEl.value} | Sisa stok: ${Math.max(0,newStock).toLocaleString('id-ID')} ${unitEl.value}`,
       '🧪', 'ico-amber'
     );
 
     qtyEl.value = ''; noteEl.value = '';
     showStockPreview(pfx);
     if (stokPanelOpen) renderStokPanel();
-    showToast(`${type==='pakai'?'Penggunaan':'Pemasukan'} tersimpan! Sisa stok: ${Math.max(0,newStock)} ${unitEl.value} ✅`, 'success');
+    showToast(`${type==='pakai'?'Penggunaan':'Pemasukan'} tersimpan! Sisa stok: ${Math.max(0,newStock).toLocaleString('id-ID')} ${unitEl.value} ✅`, 'success');
     loadChemLog();
-  } catch(e) { showToast('Gagal: '+e.message,'error'); }
+  } catch(e) { showToast('Gagal menyimpan: '+e.message,'error'); }
 }
 
 async function loadChemLog() {
