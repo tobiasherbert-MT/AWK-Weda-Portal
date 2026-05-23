@@ -991,6 +991,15 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
 
   #stok-panel-body { grid-template-columns: 1fr 1fr 1fr !important; }
 }
+/* ===== ANNOUNCEMENT ===== */
+.ann-type-btn {
+  display:block;padding:10px 12px;border:1.5px solid var(--border);
+  border-radius:10px;font-size:12.5px;font-weight:600;color:var(--text-mid);
+  cursor:pointer;text-align:center;background:var(--bg);transition:all .15s;
+}
+.ann-type-btn.sel {
+  border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:800;
+}
 </style>
 </head>
 <body>
@@ -1530,6 +1539,7 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
       <div class="admin-tab active" onclick="switchAdminTab('users',this)">👥 Users</div>
       <div class="admin-tab" onclick="switchAdminTab('export',this)">📊 Export</div>
       <div class="admin-tab" onclick="switchAdminTab('chemicals',this)">🧪 Kimia</div>
+      <div class="admin-tab" onclick="switchAdminTab('announcement',this)">📢 Pengumuman</div>
       <div class="admin-tab" onclick="switchAdminTab('report',this)">📈 Laporan</div>
     </div>
     <div class="screen-body">
@@ -1604,6 +1614,55 @@ canvas#cap-canvas, canvas#clean-canvas { display: none; }
         <div style="padding:0 16px 16px;">
           <div class="section-label" style="margin-bottom:12px;">Daftar Bahan Kimia</div>
           <div id="admin-chem-list"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- PENGUMUMAN -->
+      <div class="admin-panel" id="ap-announcement">
+        <div style="padding:16px;">
+          <div class="section-label" style="margin-bottom:14px;">Status Pengumuman Aktif</div>
+          <div id="ann-status-card" style="margin-bottom:18px;">
+            <div class="spinner"></div>
+          </div>
+
+          <div class="form-section" style="margin:0 0 16px;">
+            <div class="form-section-title">📢 Buat / Update Pengumuman</div>
+
+            <div class="form-row">
+              <label class="form-lbl">Tipe Pengumuman</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;" id="ann-type-grid">
+                <label class="ann-type-btn sel" data-type="update" onclick="selectAnnType('update',this)">🎉 Update Fitur</label>
+                <label class="ann-type-btn" data-type="fix" onclick="selectAnnType('fix',this)">🔧 Perbaikan</label>
+                <label class="ann-type-btn" data-type="warning" onclick="selectAnnType('warning',this)">⚠️ Penting</label>
+                <label class="ann-type-btn" data-type="info" onclick="selectAnnType('info',this)">📌 Informasi</label>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Judul Pengumuman</label>
+              <input class="input-f" id="ann-title" type="text" placeholder="Contoh: Update v2.1 — Fitur Baru!">
+            </div>
+
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Isi Pengumuman</label>
+              <textarea class="input-f" id="ann-body" rows="5" style="font-family:var(--font);resize:vertical;min-height:110px;"
+                placeholder="Tulis detail pengumuman di sini...&#10;&#10;Contoh:&#10;• Bug absensi pagi hari sudah diperbaiki&#10;• Fitur Penilaian kini dapat diakses analis&#10;• Upload index.html baru untuk update"></textarea>
+            </div>
+
+            <div class="form-row" style="margin-top:14px;">
+              <label class="form-lbl">Versi (opsional)</label>
+              <input class="input-f" id="ann-version" type="text" placeholder="Contoh: v2.1">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+              <button class="btn-primary" onclick="saveAnnouncement(true)">📢 Publish Sekarang</button>
+              <button class="btn-accent" onclick="saveAnnouncement(false)" style="background:var(--text-muted);">💾 Simpan Draft</button>
+            </div>
+          </div>
+
+          <button onclick="deactivateAnnouncement()" style="width:100%;padding:11px;background:none;border:1.5px solid var(--danger);color:var(--danger);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">
+            🗑️ Nonaktifkan Pengumuman
+          </button>
         </div>
       </div>
 
@@ -1875,6 +1934,56 @@ Contoh:
     </div>
   </div>
 
+  <!-- ================================================
+       NOTIFICATION MODAL
+       ============================================== -->
+  <div id="ann-overlay" style="
+    display:none;position:fixed;inset:0;z-index:9999;
+    background:rgba(13,27,46,.72);backdrop-filter:blur(8px);
+    align-items:center;justify-content:center;padding:16px;
+  ">
+    <div id="ann-modal" style="
+      background:var(--card);border-radius:20px;width:100%;max-width:420px;
+      box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;
+      transform:scale(.92) translateY(20px);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+      opacity:0;
+    ">
+      <!-- Header -->
+      <div id="ann-modal-header" style="padding:20px 20px 16px;color:#fff;position:relative;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="ann-modal-icon" style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">📢</div>
+          <div>
+            <div id="ann-modal-type-lbl" style="font-size:10.5px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.08em;">Pengumuman</div>
+            <div id="ann-modal-title" style="font-size:17px;font-weight:800;line-height:1.3;letter-spacing:-.2px;">—</div>
+          </div>
+        </div>
+        <div id="ann-modal-version" style="display:none;margin-top:10px;">
+          <span style="background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">v—</span>
+        </div>
+      </div>
+      <!-- Body -->
+      <div style="padding:16px 20px;">
+        <div id="ann-modal-body" style="font-size:13.5px;color:var(--text);line-height:1.75;white-space:pre-wrap;"></div>
+        <div id="ann-modal-date" style="margin-top:12px;font-size:11px;color:var(--text-muted);"></div>
+      </div>
+      <!-- Footer -->
+      <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;">
+        <button onclick="dismissAnnouncement(false)" style="
+          width:100%;padding:13px;background:var(--primary);color:#fff;
+          border:none;border-radius:11px;font-size:14px;font-weight:800;
+          cursor:pointer;font-family:var(--font);
+          box-shadow:0 4px 16px rgba(0,79,191,.3);
+        ">✅ Sudah Mengerti</button>
+        <button onclick="dismissAnnouncement(true)" style="
+          width:100%;padding:10px;background:none;color:var(--text-muted);
+          border:none;font-size:12px;font-weight:600;cursor:pointer;
+          font-family:var(--font);
+        ">Jangan tampilkan lagi untuk versi ini</button>
+      </div>
+    </div>
+  </div>
+
 </div><!-- end #app -->
 
 <script>
@@ -2006,6 +2115,8 @@ auth.onAuthStateChanged(async user => {
       document.getElementById('nav-admin').style.display = 'flex';
     }
     navigate('dashboard');
+    // Cek pengumuman dari admin (dengan delay kecil agar dashboard muncul dulu)
+    setTimeout(() => checkAnnouncement(), 1200);
   } else {
     document.getElementById('bottom-nav').style.display = 'none';
     showScreen('login');
@@ -3438,6 +3549,160 @@ function switchAdminTab(tab, el) {
   document.getElementById('ap-' + tab).classList.add('active');
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  if (tab === 'announcement') loadAnnouncementAdmin();
+}
+
+// ============================================================
+// ANNOUNCEMENT / NOTIFIKASI UPDATE
+// ============================================================
+let annType = 'update';
+
+const ANN_CONFIG = {
+  update:  { ico:'🎉', label:'Update Fitur',  bg:'linear-gradient(135deg,#1A3A6E,#2C5FB5)', color:'update' },
+  fix:     { ico:'🔧', label:'Perbaikan',     bg:'linear-gradient(135deg,#065F46,#059669)', color:'fix' },
+  warning: { ico:'⚠️', label:'Penting!',      bg:'linear-gradient(135deg,#92400E,#D97706)', color:'warning' },
+  info:    { ico:'📌', label:'Informasi',     bg:'linear-gradient(135deg,#1E3A5F,#2E5984)', color:'info' },
+};
+
+function selectAnnType(type, el) {
+  annType = type;
+  document.querySelectorAll('.ann-type-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ─── CHECK on login ───────────────────────────────────────────
+async function checkAnnouncement() {
+  try {
+    const doc = await db.collection('config').doc('announcement').get();
+    if (!doc.exists) return;
+    const d = doc.data();
+    if (!d.active) return;
+
+    // Cek apakah user sudah dismiss versi ini
+    const dismissed = localStorage.getItem('ann_dismissed');
+    const version   = d.version || d.updatedAt?.toMillis?.() || 'v1';
+    if (dismissed === String(version)) return;
+
+    showAnnouncementModal(d);
+  } catch(e) { /* silent */ }
+}
+
+function showAnnouncementModal(d) {
+  const cfg = ANN_CONFIG[d.type] || ANN_CONFIG.info;
+  const overlay = document.getElementById('ann-overlay');
+  const modal   = document.getElementById('ann-modal');
+  const header  = document.getElementById('ann-modal-header');
+
+  document.getElementById('ann-modal-icon').textContent = cfg.ico;
+  document.getElementById('ann-modal-type-lbl').textContent = cfg.label;
+  document.getElementById('ann-modal-title').textContent = d.title || 'Ada pembaruan baru!';
+  document.getElementById('ann-modal-body').textContent = d.body || '';
+
+  const verEl = document.getElementById('ann-modal-version');
+  if (d.version) {
+    verEl.style.display = 'block';
+    verEl.querySelector('span').textContent = d.version;
+  } else {
+    verEl.style.display = 'none';
+  }
+
+  if (d.updatedAt?.toDate) {
+    document.getElementById('ann-modal-date').textContent =
+      '📅 ' + d.updatedAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+
+  header.style.background = cfg.bg;
+  overlay.style.display = 'flex';
+  // Animate in
+  setTimeout(() => {
+    modal.style.transform = 'scale(1) translateY(0)';
+    modal.style.opacity = '1';
+  }, 30);
+
+  // Store version for dismiss reference
+  modal.dataset.version = d.version || d.updatedAt?.toMillis?.() || 'v1';
+}
+
+function dismissAnnouncement(permanent) {
+  const modal   = document.getElementById('ann-modal');
+  const overlay = document.getElementById('ann-overlay');
+  if (permanent) {
+    localStorage.setItem('ann_dismissed', modal.dataset.version);
+  }
+  modal.style.transform = 'scale(.92) translateY(20px)';
+  modal.style.opacity = '0';
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
+}
+
+// ─── ADMIN PANEL ──────────────────────────────────────────────
+async function loadAnnouncementAdmin() {
+  const card = document.getElementById('ann-status-card');
+  card.innerHTML = '<div class="spinner"></div>';
+  try {
+    const doc = await db.collection('config').doc('announcement').get();
+    if (!doc.exists || !doc.data().active) {
+      card.innerHTML = `
+        <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:14px 16px;display:flex;gap:10px;align-items:center;">
+          <span style="font-size:24px;">🔕</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#991B1B;">Tidak ada pengumuman aktif</div>
+            <div style="font-size:12px;color:#B91C1C;margin-top:2px;">Buat pengumuman baru di form di bawah</div>
+          </div>
+        </div>`;
+      return;
+    }
+    const d   = doc.data();
+    const cfg = ANN_CONFIG[d.type] || ANN_CONFIG.info;
+    const ts  = d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString('id-ID') : '—';
+    card.innerHTML = `
+      <div style="background:var(--card);border:1.5px solid var(--success);border-radius:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:22px;">${cfg.ico}</span>
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:800;color:var(--text);">${escapeHtml(d.title||'—')}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${cfg.label} ${d.version?'• '+d.version:''} • ${ts}</div>
+          </div>
+          <span style="background:#ECFDF5;color:#065F46;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">🟢 AKTIF</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--text-mid);background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-wrap;line-height:1.6;">${escapeHtml(d.body||'')}</div>
+      </div>`;
+
+    // Pre-fill form
+    document.getElementById('ann-title').value   = d.title || '';
+    document.getElementById('ann-body').value    = d.body  || '';
+    document.getElementById('ann-version').value = d.version || '';
+    selectAnnType(d.type || 'update', document.querySelector(`[data-type="${d.type||'update'}"]`));
+  } catch(e) {
+    card.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
+  }
+}
+
+async function saveAnnouncement(active) {
+  const title   = document.getElementById('ann-title').value.trim();
+  const body    = document.getElementById('ann-body').value.trim();
+  const version = document.getElementById('ann-version').value.trim();
+  if (!title) { showToast('Isi judul pengumuman terlebih dahulu.', 'error'); return; }
+  if (!body)  { showToast('Isi konten pengumuman terlebih dahulu.', 'error'); return; }
+  try {
+    await db.collection('config').doc('announcement').set({
+      title, body, version, type: annType, active,
+      updatedBy: currentUser._name,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast(active ? '📢 Pengumuman dipublish! Semua analis akan melihatnya.' : '💾 Draft tersimpan.', 'success');
+    loadAnnouncementAdmin();
+    // Reset dismissed jika publish baru
+    if (active) localStorage.removeItem('ann_dismissed');
+  } catch(e) { showToast('Gagal simpan: '+e.message, 'error'); }
+}
+
+async function deactivateAnnouncement() {
+  if (!confirm('Nonaktifkan pengumuman ini?')) return;
+  try {
+    await db.collection('config').doc('announcement').update({ active: false });
+    showToast('Pengumuman dinonaktifkan.', 'success');
+    loadAnnouncementAdmin();
+  } catch(e) { showToast('Gagal: '+e.message, 'error'); }
 }
 
 async function loadUsers() {
