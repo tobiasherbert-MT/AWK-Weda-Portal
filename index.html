@@ -2101,36 +2101,42 @@ async function loadDashboard() {
   if (pnSub)   pnSub.textContent   = isAdmin ? 'Beri nilai performa analis' : 'Lihat evaluasi performa Anda';
 
   const today = todayStr();
-  const m1    = new Date(); m1.setDate(1);
-  const mStr  = m1.toISOString().slice(0,10);
+  const mStr  = monthStartStr();
   const uid   = currentUser.uid;
 
-  // ── STATS: query hanya 1 field (tidak butuh composite index) ──
+  // ── STATS: query hanya 1 field + filter client-side ──
   // Absen bulan ini
   try {
     const s = await db.collection('attendance').where('userId','==',uid).get();
-    const cnt = s.docs.filter(d => d.data().date >= mStr).length;
+    const cnt = s.docs.filter(d => {
+      const date = d.data().date;
+      return date >= mStr || (d.data().timestamp?.toDate && (() => {
+        const ts = d.data().timestamp.toDate();
+        const m = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-01`;
+        return m >= mStr;
+      })());
+    }).length;
     document.getElementById('stat-absen').textContent = cnt;
   } catch(e) { document.getElementById('stat-absen').textContent = '—'; }
 
   // Log kerja hari ini
   try {
     const s = await db.collection('jobLogs').where('userId','==',uid).get();
-    const cnt = s.docs.filter(d => d.data().date === today).length;
+    const cnt = s.docs.filter(d => isToday(d.data())).length;
     document.getElementById('stat-job').textContent = cnt;
   } catch(e) { document.getElementById('stat-job').textContent = '—'; }
 
   // Log kimia hari ini
   try {
     const s = await db.collection('chemicalUsage').where('userId','==',uid).get();
-    const cnt = s.docs.filter(d => d.data().date === today).length;
+    const cnt = s.docs.filter(d => isToday(d.data())).length;
     document.getElementById('stat-chem').textContent = cnt;
   } catch(e) { document.getElementById('stat-chem').textContent = '—'; }
 
-  // ── ABSEN STATUS: query hanya userId, filter date client-side ──
+  // ── ABSEN STATUS ──
   try {
     const s    = await db.collection('attendance').where('userId','==',uid).get();
-    const docs = s.docs.filter(d => d.data().date === today);
+    const docs = s.docs.filter(d => isToday(d.data()));
     const chip = document.getElementById('absen-status-chip');
     if (docs.length > 0) {
       chip.className = 'absen-chip ok';
@@ -2285,16 +2291,23 @@ async function submitAbsen() {
 
 async function loadAbsenToday() {
   const list = document.getElementById('absen-today-list');
-  const snap = await db.collection('attendance')
-    .where('userId','==',currentUser.uid)
-    .where('date','==',todayStr())
-    .orderBy('timestamp','desc').get();
-  if (snap.empty) {
-    list.innerHTML = '<div class="empty-box" style="padding:16px 0"><div class="empty-txt" style="font-size:12px;">Belum ada absen hari ini</div></div>';
-    return;
-  }
-  list.innerHTML = '';
-  snap.forEach(doc => {
+  try {
+    // Single-field query + client-side filter (tidak butuh index)
+    const snap = await db.collection('attendance').where('userId','==',currentUser.uid).get();
+    const docs = [];
+    snap.forEach(d => { if (isToday(d.data())) docs.push(d); });
+    // Sort terbaru dulu
+    docs.sort((a,b) => {
+      const ta = a.data().timestamp?.toMillis ? a.data().timestamp.toMillis() : 0;
+      const tb = b.data().timestamp?.toMillis ? b.data().timestamp.toMillis() : 0;
+      return tb - ta;
+    });
+    if (docs.length === 0) {
+      list.innerHTML = '<div class="empty-box" style="padding:16px 0"><div class="empty-txt" style="font-size:12px;">Belum ada absen hari ini</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    docs.forEach(doc => {
     const d = doc.data();
     const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
     list.innerHTML += `
@@ -2308,7 +2321,10 @@ async function loadAbsenToday() {
           <div class="absen-rec-meta">📍 ${d.lat?.toFixed(6)}, ${d.lng?.toFixed(6)}</div>
         </div>
       </div>`;
-  });
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat: ${e.message}</div></div>`;
+  }
 }
 
 // ============================================================
@@ -2474,9 +2490,10 @@ async function renderStokPanel() {
   let usageToday = {};
   let pemasukToday = {};
   try {
-    const usnap = await db.collection('chemicalUsage').where('date','==',todayStr()).get();
+    const usnap = await db.collection('chemicalUsage').get();
     usnap.forEach(d => {
       const data = d.data();
+      if (!isToday(data)) return;
       if (data.type === 'pakai') {
         usageToday[data.chemicalId] = (usageToday[data.chemicalId] || 0) + (data.qty || 0);
       } else {
@@ -2592,15 +2609,14 @@ async function loadChemLog() {
   const list = document.getElementById('chem-log-list');
   list.innerHTML = '<div class="spinner"></div>';
   try {
-    // Client-side sort — hindari composite index
-    const snap = await db.collection('chemicalUsage').where('date','==',todayStr()).get();
-    if (snap.empty) {
+    // Single-field query + client-side filter pakai isToday (handle UTC & local dates)
+    const snap = await db.collection('chemicalUsage').where('userId','==',currentUser.uid).get();
+    const docs = [];
+    snap.forEach(doc => { if (isToday(doc.data())) docs.push({ id: doc.id, data: doc.data() }); });
+    if (docs.length === 0) {
       list.innerHTML = '<div class="empty-box"><div class="empty-ico">🧪</div><div class="empty-txt">Belum ada log kimia hari ini</div></div>';
       return;
     }
-    const docs = [];
-    snap.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
-    // Sort terbaru dulu (client-side)
     docs.sort((a,b) => {
       const ta = a.data.timestamp?.toMillis ? a.data.timestamp.toMillis() : 0;
       const tb = b.data.timestamp?.toMillis ? b.data.timestamp.toMillis() : 0;
@@ -2712,8 +2728,8 @@ async function loadHandovers() {
   try {
     let q;
     if (handoverTab === 'today') {
-      // Hindari composite index: ambil filter saja, sort client-side
-      q = db.collection('handovers').where('date','==',todayStr());
+      // Single-field query + client-side filter pakai isToday
+      q = db.collection('handovers').orderBy('timestamp','desc').limit(50);
     } else {
       q = db.collection('handovers').orderBy('timestamp','desc').limit(30);
     }
@@ -2725,17 +2741,24 @@ async function loadHandovers() {
       </div>`;
       return;
     }
-    // Client-side sort untuk tab 'today'
-    const docs = [];
+    // Client-side sort & filter untuk tab 'today'
+    let docs = [];
     snap.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
     if (handoverTab === 'today') {
+      docs = docs.filter(({ data: d }) => isToday(d));
       docs.sort((a,b) => {
         const ta = a.data.timestamp?.toMillis ? a.data.timestamp.toMillis() : 0;
         const tb = b.data.timestamp?.toMillis ? b.data.timestamp.toMillis() : 0;
         return tb - ta;
       });
     }
-    list.innerHTML = '';
+    if (docs.length === 0) {
+      list.innerHTML = `<div class="empty-box" style="padding:32px 16px;">
+        <div class="empty-ico" style="font-size:40px;">📭</div>
+        <div class="empty-txt">Belum ada catatan handover ${handoverTab==='today'?'hari ini':''}</div>
+      </div>`;
+      return;
+    }
     docs.forEach(({ id, data: d }) => {
       const ts = d.timestamp?.toDate ? d.timestamp.toDate() : null;
       const time = ts ? formatTime(ts) : '—';
@@ -3359,15 +3382,21 @@ async function submitCleanLog() {
 async function loadCleanLog() {
   const list = document.getElementById('clean-log-list');
   if (!list) return;
-  const snap = await db.collection('cleanlinessLogs')
-    .where('date','==',todayStr())
-    .orderBy('timestamp','desc').get();
-  if (snap.empty) {
-    list.innerHTML = '<div class="empty-box" style="padding:16px 0;"><div class="empty-ico" style="font-size:28px;">📭</div><div class="empty-txt" style="font-size:12px;">Belum ada log kebersihan hari ini</div></div>';
-    return;
-  }
-  list.innerHTML = '';
-  snap.forEach(doc => {
+  try {
+    const snap = await db.collection('cleanlinessLogs').where('userId','==',currentUser.uid).get();
+    const docs = [];
+    snap.forEach(doc => { if (isToday(doc.data())) docs.push(doc); });
+    docs.sort((a,b) => {
+      const ta = a.data().timestamp?.toMillis ? a.data().timestamp.toMillis() : 0;
+      const tb = b.data().timestamp?.toMillis ? b.data().timestamp.toMillis() : 0;
+      return tb - ta;
+    });
+    if (docs.length === 0) {
+      list.innerHTML = '<div class="empty-box" style="padding:16px 0;"><div class="empty-ico" style="font-size:28px;">📭</div><div class="empty-txt" style="font-size:12px;">Belum ada log kebersihan hari ini</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    docs.forEach(doc => {
     const d = doc.data();
     const ts = d.timestamp?.toDate ? formatTime(d.timestamp.toDate()) : '—';
     list.innerHTML += `
@@ -3379,7 +3408,10 @@ async function loadCleanLog() {
         </div>
         <span style="font-size:18px;">✅</span>
       </div>`;
-  });
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty-box"><div class="empty-txt">Gagal memuat log.</div></div>`;
+  }
 }
 
 // ============================================================
@@ -3594,7 +3626,32 @@ function showToast(msg, type='') {
 // ============================================================
 // UTILITIES
 // ============================================================
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() {
+  // Gunakan LOCAL date (WIT UTC+9), bukan UTC — mencegah bug tanggal di pagi hari
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Helper: cek apakah dokumen Firestore termasuk hari ini
+// Menangani rekord lama (UTC) maupun baru (lokal)
+function isToday(data) {
+  const localToday = todayStr();
+  const utcToday   = new Date().toISOString().slice(0,10);
+  if (data.date === localToday || data.date === utcToday) return true;
+  // Fallback: cek via field timestamp jika ada
+  if (data.timestamp?.toDate) {
+    const ts = data.timestamp.toDate();
+    const tsLocal = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')}`;
+    return tsLocal === localToday;
+  }
+  return false;
+}
+
+// Tanggal awal bulan ini (lokal)
+function monthStartStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
 
 function formatDate(d) {
   return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
